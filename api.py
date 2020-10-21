@@ -36,8 +36,10 @@ class User(db.Model):
     prenom = db.Column(db.String(32), index=True)
     numero = db.Column(db.Integer)
     password_hash = db.Column(db.String(128))
+    groupeTD = db.Column(db.String(32), index=True)
     mail = db.Column(db.String(128))
     genre = db.Column(db.Integer)
+    rank = db.Column(db.Integer)
 
     def hash_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -54,9 +56,12 @@ class User(db.Model):
         """Return object data in easily serializable format"""
         return {
             'id': self.id,
-            'username': self.username,
-            'mail': self.mail,
-            'rank': self.rank
+            'nom': self.nom,
+            'prenom': self.prenom,
+            'numero': self.numero,
+            'groupeTD':self.groupeTD,
+            'mail':self.mail,
+            'genre':self.genre
         }
 
     @staticmethod
@@ -168,6 +173,21 @@ class actionPE(db.Model):
     id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
 
 
+
+
+@auth.verify_password
+def verify_password(username_or_token, password):
+    # first try to authenticate by token
+    user = User.verify_auth_token(username_or_token)
+    if not user:
+        # try to authenticate with username/password
+        user = User.query.filter_by(username=username_or_token).first()
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
+
+
 # ----------------------------ADMIN
 # Check
 @app.route('/api/token')
@@ -181,25 +201,95 @@ def get_auth_token():
 @app.route('/api/user/registratoin', methods=['POST'])
 @auth.login_required
 def user_registration():
-    pass
+
+
+    nom = request.json.get('nom')
+    prenom = request.json.get('prenom')
+    numero = request.json.get('numero')
+    password = request.json.get('password')
+    groupeTD = request.json.get('groupeTD')
+    mail = request.json.get('mail')
+    genre = request.json.get('genre')
+    rank = Rank.USER.value
+
+    if nom is None or password is None or mail is None:
+        abort(400)  # missing arguments
+    if User.query.filter_by(nom=nom).first() is not None:
+        print("existing")
+        abort(400)  # existing user
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+    user = User(nom=nom)
+    user.hash_password(password)
+    user.prenom = prenom
+    user.numero = numero
+    user.groupeTD = groupeTD
+    user.mail = mail
+    user.genre = genre
+    user.rank = rank
+    db.session.add(user)
+    db.session.commit()
+
+    return (jsonify({'nom': user.nom}), 201,
+            {'Location': url_for('get_user', id=user.id, _external=True)})
 
 
 @app.route('/api/users/', methods=['GET'])
 @auth.login_required
 def get_users():
-    pass
+    users = User.query.order_by(User.nom).all()
+    data = []
+    for u in users:
+        data.append(u.serialize())
+    if not users:
+        return jsonify({})
+    print(g.user.serialize())
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+    return jsonify(data)
 
 
 @app.route('/api/user/<int:id>', methods=['GET'])
 @auth.login_required
 def get_user(id):
-    pass
+    user = User.query.get(id)
+    if not user:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.id != id:
+        abort(403)
+    return jsonify(user.serialize())
 
 
 @app.route('/api/user/<int:id>', methods=['POST'])
 @auth.login_required
 def update_user(id):
-    pass
+    nom = request.json.get('nom')
+    prenom = request.json.get('prenom')
+    numero = request.json.get('numero')
+    password = request.json.get('password')
+    groupeTD = request.json.get('groupeTD')
+    mail = request.json.get('mail')
+    genre = request.json.get('genre')
+    rank = Rank.USER.value
+
+    if nom is None or password is None or mail is None:
+        abort(400)  # missing arguments
+    if User.query.filter_by(nom=nom).first() is None:
+        print("not existing")
+        abort(400)  # existing user
+    if g.user.rank != Rank.ADMIN.value and g.user.id != id:
+        abort(403)
+
+    user = User.query.get(id)
+    user.hash_password(password)
+    user.nom = nom
+    user.prenom = prenom
+    user.numero = numero
+    user.groupeTD = groupeTD
+    user.mail = mail
+    user.genre = genre
+    user.rank = rank
+    db.session.commit()
 
 
 # ----------------------------ForumInfo
@@ -483,7 +573,7 @@ def get_api_endpoint():
 @app.route('/api/resource')
 @auth.login_required
 def get_resource():
-    return jsonify({'data': 'Hello, %s!' % g.user.username})
+    return jsonify({'data': 'Hello, %s!' % g.user.nom})
 
 
 if __name__ == '__main__':

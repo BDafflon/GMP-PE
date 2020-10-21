@@ -18,7 +18,6 @@ from werkzeug.utils import secure_filename
 
 from helper import *
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
@@ -75,9 +74,14 @@ class ForumInfo(db.Model):
     id_forum_info = db.Column(db.Integer, primary_key=True)
     lien_visio = db.Column(db.String(128))
     lien_video = db.Column(db.String(128))
+
+
+class ParticipationForum(db.Model):
+    __tablename__='ParticiationForum'
+    id_participation_forum_info = db.Column(db.Integer, primary_key=True)
+    id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
+    id_forum_info = db.Column(db.Integer, db.ForeignKey('ForumInfo.id_forum_info'))
     annee = db.Column(db.Integer)
-
-
 
 class TypeEcole(db.Model):
     __tablename__ = 'TypeEcole'
@@ -93,23 +97,22 @@ class Ecole(db.Model):
     id_adresse_ecole = db.Column(db.Integer, db.ForeignKey('Adresse.id_adresse'))
 
 
-
 class Adresse(db.Model):
     __tablename__ = 'Adresse'
-    id_adresse= db.Column(db.Integer, primary_key=True)
+    id_adresse = db.Column(db.Integer, primary_key=True)
     num_rue = db.Column(db.String(128))
     nom_rue = db.Column(db.String(128))
     ville = db.Column(db.String(128))
     cp = db.Column(db.String(128))
     pays = db.Column(db.String(128))
 
+
 class ResponsableFormation(db.Model):
     __tablename__ = 'ResponsableFormation'
     id_responsable = db.Column(db.Integer, primary_key=True)
     nom_responsable = db.Column(db.String(128))
-    mail_responsable =  db.Column(db.String(128))
-    telephone_responsable =  db.Column(db.String(128))
-
+    mail_responsable = db.Column(db.String(128))
+    telephone_responsable = db.Column(db.String(128))
 
 
 class Candidature(db.Model):
@@ -118,6 +121,10 @@ class Candidature(db.Model):
     id_etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
     id_voeux = db.Column(db.Integer, db.ForeignKey('Voeux.id_voeux'))
     date_candidature = db.Column(db.Integer)
+    deadline_dossier = db.Column(db.Integer)
+    validationPE = db.Column(db.Boolean)
+    id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
+
 
 class Formation(db.Model):
     __tablename__ = 'Formation'
@@ -129,6 +136,8 @@ class Formation(db.Model):
     alternance = db.Column(db.Boolean)
     type_formation = db.Column(db.Boolean)
     id_responsable = db.Column(db.Integer, db.ForeignKey('ResponsableFormation.id_responsable'))
+    id_ecole = db.Column(db.Integer, db.ForeignKey('Ecole.id_ecole'))
+
 
 class ProfilRecruter(db.Model):
     __tablename__ = 'ProfilRecruter'
@@ -136,25 +145,335 @@ class ProfilRecruter(db.Model):
     id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
     id_profil = db.Column(db.Integer, db.ForeignKey('Profil.id_profil'))
 
+
 class Profil(db.Model):
     __tablename__ = 'Profil'
-    id_profil =  db.Column(db.Integer, primary_key=True)
+    id_profil = db.Column(db.Integer, primary_key=True)
     nom_profil = db.Column(db.String(128))
+
 
 class Voeux(db.Model):
     __tablename__ = 'Voeux'
     id_voeux = db.Column(db.Integer, primary_key=True)
     ordre = db.Column(db.Integer)
-    deadline_dossier = db.Column(db.Integer)
-    validationPE = db.Column(db.Boolean)
+    id_user = db.Column(db.Integer, db.ForeignKey('User.id'))
+    id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
+
 
 class actionPE(db.Model):
     __tablename__ = 'actionPE'
     id_action = db.Column(db.Integer, primary_key=True)
     action = db.Column(db.String(255))
     etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
-    voeux = db.Column(db.Integer, db.ForeignKey('Voeux.id_voeux'))
+    id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
 
+
+# ----------------------------ADMIN
+# Check
+@app.route('/api/token')
+@auth.login_required
+def get_auth_token():
+    token = g.user.generate_auth_token(600)
+    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+
+
+# ----------------------------USER
+@app.route('/api/user/registratoin', methods=['POST'])
+@auth.login_required
+def user_registration():
+    pass
+
+
+@app.route('/api/users/', methods=['GET'])
+@auth.login_required
+def get_users():
+    pass
+
+
+@app.route('/api/user/<int:id>', methods=['GET'])
+@auth.login_required
+def get_user(id):
+    pass
+
+
+@app.route('/api/user/<int:id>', methods=['POST'])
+@auth.login_required
+def update_user(id):
+    pass
+
+
+# ----------------------------ForumInfo
+@app.route('/api/forum/registratoin', methods=['POST'])
+@auth.login_required
+def forum_registration():
+    pass
+
+
+@app.route('/api/forum/', methods=['GET'])
+@auth.login_required
+def get_forums():
+    pass
+
+
+@app.route('/api/forum/<int:id>', methods=['GET'])
+@auth.login_required
+def get_forum(id):
+    pass
+
+
+@app.route('/api/forum/<int:id>', methods=['POST'])
+@auth.login_required
+def update_forum(id):
+    pass
+
+
+# ----------------------------TypeEcole
+@app.route('/api/typeecole/registratoin', methods=['POST'])
+@auth.login_required
+def typeecole_registration():
+    pass
+
+
+@app.route('/api/typeecole/', methods=['GET'])
+@auth.login_required
+def get_typeecoles():
+    pass
+
+
+@app.route('/api/typeecole/<int:id>', methods=['GET'])
+@auth.login_required
+def get_typeecole(id):
+    pass
+
+
+@app.route('/api/typeecole/<int:id>', methods=['POST'])
+@auth.login_required
+def update_typeecole(id):
+    pass
+
+
+# ----------------------------Ecole
+@app.route('/api/typeecole/registratoin', methods=['POST'])
+@auth.login_required
+def ecole_registration():
+    pass
+
+
+@app.route('/api/ecoles/', methods=['GET'])
+@auth.login_required
+def get_ecoles():
+    pass
+
+
+@app.route('/api/ecole/<int:id>', methods=['GET'])
+@auth.login_required
+def get_ecole(id):
+    pass
+
+
+@app.route('/api/ecole/<int:id>', methods=['POST'])
+@auth.login_required
+def update_ecole(id):
+    pass
+
+
+# ----------------------------ADRESSE
+@app.route('/api/adresse/registratoin', methods=['POST'])
+@auth.login_required
+def adresse_registration():
+    pass
+
+
+@app.route('/api/adresses/', methods=['GET'])
+@auth.login_required
+def get_adresses():
+    pass
+
+
+@app.route('/api/adresse/<int:id>', methods=['GET'])
+@auth.login_required
+def get_adresse(id):
+    pass
+
+
+@app.route('/api/adresse/<int:id>', methods=['POST'])
+@auth.login_required
+def update_adresse(id):
+    pass
+
+
+# ----------------------------RESPONSABLE
+@app.route('/api/responsable/registratoin', methods=['POST'])
+@auth.login_required
+def responsable_registration():
+    pass
+
+
+@app.route('/api/responsable/', methods=['GET'])
+@auth.login_required
+def get_responsables():
+    pass
+
+
+@app.route('/api/responsable/<int:id>', methods=['GET'])
+@auth.login_required
+def get_responsable(id):
+    pass
+
+
+@app.route('/api/responsable/<int:id>', methods=['POST'])
+@auth.login_required
+def update_responsable(id):
+    pass
+
+
+# ----------------------------CANDIDATURE
+@app.route('/api/candidature/registratoin', methods=['POST'])
+@auth.login_required
+def candidature_registration():
+    pass
+
+
+@app.route('/api/candidature/', methods=['GET'])
+@auth.login_required
+def get_candidatures():
+    pass
+
+
+@app.route('/api/candidature/<int:id>', methods=['GET'])
+@auth.login_required
+def get_candidature(id):
+    pass
+
+
+@app.route('/api/candidature/<int:id>', methods=['POST'])
+@auth.login_required
+def update_candidature(id):
+    pass
+
+
+# ----------------------------FORMATION
+@app.route('/api/formation/registratoin', methods=['POST'])
+@auth.login_required
+def formation_registration():
+    pass
+
+
+@app.route('/api/formation/', methods=['GET'])
+@auth.login_required
+def get_formations():
+    pass
+
+
+@app.route('/api/formation/<int:id>', methods=['GET'])
+@auth.login_required
+def get_formation(id):
+    pass
+
+
+@app.route('/api/formation/<int:id>', methods=['POST'])
+@auth.login_required
+def update_formation(id):
+    pass
+
+
+# ----------------------------PROFILRECRUTE
+@app.route('/api/profilerecrute/registratoin', methods=['POST'])
+@auth.login_required
+def profilerecrute_registration():
+    pass
+
+
+@app.route('/api/profilrecrute/', methods=['GET'])
+@auth.login_required
+def get_profilrecrutes():
+    pass
+
+
+@app.route('/api/profilrecrute/<int:id>', methods=['GET'])
+@auth.login_required
+def get_profilrecrute(id):
+    pass
+
+
+@app.route('/api/profilrecrute/<int:id>', methods=['POST'])
+@auth.login_required
+def update_profilrecrute(id):
+    pass
+
+
+# ----------------------------PROFIL
+@app.route('/api/profil/registratoin', methods=['POST'])
+@auth.login_required
+def profil_registration():
+    pass
+
+
+@app.route('/api/profil/', methods=['GET'])
+@auth.login_required
+def get_profils():
+    pass
+
+
+@app.route('/api/profil/<int:id>', methods=['GET'])
+@auth.login_required
+def get_profil(id):
+    pass
+
+
+@app.route('/api/profil/<int:id>', methods=['POST'])
+@auth.login_required
+def update_profil(id):
+    pass
+
+
+# ----------------------------VOEUX
+@app.route('/api/voeux/registratoin', methods=['POST'])
+@auth.login_required
+def voeux_registration():
+    pass
+
+
+@app.route('/api/allvoeux/', methods=['GET'])
+@auth.login_required
+def get_voeuxs():
+    pass
+
+
+@app.route('/api/voeux/<int:id>', methods=['GET'])
+@auth.login_required
+def get_voeux(id):
+    pass
+
+
+@app.route('/api/voeux/<int:id>', methods=['POST'])
+@auth.login_required
+def update_voeux(id):
+    pass
+
+# ----------------------------ACTIONPE
+@app.route('/api/actionpe/registratoin', methods=['POST'])
+@auth.login_required
+def actionpe_registration():
+    pass
+
+
+@app.route('/api/actionpes/', methods=['GET'])
+@auth.login_required
+def get_actionpes():
+    pass
+
+
+@app.route('/api/actionpe/<int:id>', methods=['GET'])
+@auth.login_required
+def get_actionpe(id):
+    pass
+
+
+@app.route('/api/actionpe/<int:id>', methods=['POST'])
+@auth.login_required
+def update_actionpe(id):
+    pass
 
 @app.route('/')
 def get_api_endpoint():
@@ -165,6 +484,7 @@ def get_api_endpoint():
 @auth.login_required
 def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.user.username})
+
 
 if __name__ == '__main__':
     if not os.path.exists('db.sqlite'):

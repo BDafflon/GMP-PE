@@ -79,6 +79,14 @@ class ForumInfo(db.Model):
     id_forum_info = db.Column(db.Integer, primary_key=True)
     lien_visio = db.Column(db.String(128))
     lien_video = db.Column(db.String(128))
+    def serialize(self):
+        """Return object data in easily serializable format"""
+        return {
+            'id_forum_info': self.id_forum_info,
+            'lien_visio': self.lien_visio,
+            'lien_video': self.lien_video
+
+        }
 
 
 class ParticipationForum(db.Model):
@@ -244,8 +252,10 @@ def get_users():
     if not users:
         return jsonify({})
     print(g.user.serialize())
+
     if g.user.rank != Rank.ADMIN.value:
         abort(403)
+
     return jsonify(data)
 
 
@@ -293,25 +303,50 @@ def update_user(id):
 
 
 # ----------------------------ForumInfo
-@app.route('/api/forum/registratoin', methods=['POST'])
+@app.route('/api/foruminfo/registratoin', methods=['POST'])
 @auth.login_required
-def forum_registration():
+def foruminfo_registration():
+    lien_visio = request.json.get('lien_visio')
+    lien_video = request.json.get('lien_video')
+
+    if lien_visio is None or lien_video is None :
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value :
+        abort(403)
+
+    info = ForumInfo(lien_visio=lien_visio)
+    info.lien_video = lien_video
+    db.session.add(info)
+    db.session.commit()
+
+
+
+
+@app.route('/api/foruminfo/', methods=['GET'])
+@auth.login_required
+def get_foruminfos():
+    info = ForumInfo.query.order_by(ForumInfo.id_forum_info).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    print(g.user.serialize())
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
+
+
+@app.route('/api/foruminfo/<int:id>', methods=['GET'])
+@auth.login_required
+def get_foruminfo(id):
     pass
 
 
-@app.route('/api/forum/', methods=['GET'])
-@auth.login_required
-def get_forums():
-    pass
-
-
-@app.route('/api/forum/<int:id>', methods=['GET'])
-@auth.login_required
-def get_forum(id):
-    pass
-
-
-@app.route('/api/forum/<int:id>', methods=['POST'])
+@app.route('/api/foruminfo/<int:id>', methods=['POST'])
 @auth.login_required
 def update_forum(id):
     pass

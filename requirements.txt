@@ -1,0 +1,11 @@
+click
+Flask
+Flask-HTTPAuth
+Flask-SQLAlchemy
+itsdangerous
+Jinja2
+MarkupSafe
+PyJWT
+SQLAlchemy
+Werkzeug
+Flask-RestPlus

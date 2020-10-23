@@ -95,11 +95,25 @@ class ParticipationForum(db.Model):
     id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
     id_forum_info = db.Column(db.Integer, db.ForeignKey('ForumInfo.id_forum_info'))
     annee = db.Column(db.Integer)
+    def serialize(self):
+        """Return object data in easily serializable format"""
+        return {
+            'id_participation_forum_info': self.id_participation_forum_info,
+            'id_formation': self.id_formation,
+            'id_forum_info': self.id_forum_info,
+            'anne':self.annee
+        }
 
 class TypeEcole(db.Model):
     __tablename__ = 'TypeEcole'
     id_type_ecole = db.Column(db.Integer, primary_key=True)
     nom_type = db.Column(db.String(128))
+    def serialize(self):
+        """Return object data in easily serializable format"""
+        return {
+            'id_type_ecole': self.id_type_ecole,
+            'nom_type': self.nom_type
+        }
 
 
 class Ecole(db.Model):
@@ -108,6 +122,14 @@ class Ecole(db.Model):
     nom_ecole = db.Column(db.String(128))
     id_type_ecole = db.Column(db.Integer, db.ForeignKey('TypeEcole.id_type_ecole'))
     id_adresse_ecole = db.Column(db.Integer, db.ForeignKey('Adresse.id_adresse'))
+
+    def serialize(self):
+        return {
+            'id_ecole': self.id_ecole,
+            'nom_ecole': self.nom_ecole,
+            'id_type_ecole':self.id_type_ecole,
+            'id_adresse_ecole':self.id_adresse_ecole
+        }
 
 
 class Adresse(db.Model):
@@ -118,7 +140,15 @@ class Adresse(db.Model):
     ville = db.Column(db.String(128))
     cp = db.Column(db.String(128))
     pays = db.Column(db.String(128))
-
+    def serialize(self):
+        return {
+            'id_adresse': self.id_adresse,
+            'num_rue': self.num_rue,
+            'nom_rue':self.nom_rue,
+            'ville':self.ville,
+            'cp':self.cp,
+            'pays':self.pays
+        }
 
 class ResponsableFormation(db.Model):
     __tablename__ = 'ResponsableFormation'
@@ -126,6 +156,13 @@ class ResponsableFormation(db.Model):
     nom_responsable = db.Column(db.String(128))
     mail_responsable = db.Column(db.String(128))
     telephone_responsable = db.Column(db.String(128))
+    def serialize(self):
+        return {
+            'id_responsable': self.id_responsable,
+            'nom_responsable': self.nom_responsable,
+            'mail_responsable':self.mail_responsable,
+            'telephone_responsable':self.telephone_responsable
+        }
 
 
 class Candidature(db.Model):
@@ -136,8 +173,18 @@ class Candidature(db.Model):
     date_candidature = db.Column(db.Integer)
     deadline_dossier = db.Column(db.Integer)
     validationPE = db.Column(db.Boolean)
+    voeux = db.Column(db.Integer)
     id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
-
+    def serialize(self):
+        return {
+            'id_candidature': self.id_candidature,
+            'id_etudiant': self.id_etudiant,
+            'id_voeux':self.id_voeux,
+            'date_candidature':self.date_candidature,
+            'deadline_dossier':self.deadline_dossier,
+            'validationPE':self.validationPE,
+            'id_formation':self.id_formation
+        }
 
 class Formation(db.Model):
     __tablename__ = 'Formation'
@@ -163,14 +210,6 @@ class Profil(db.Model):
     __tablename__ = 'Profil'
     id_profil = db.Column(db.Integer, primary_key=True)
     nom_profil = db.Column(db.String(128))
-
-
-class Voeux(db.Model):
-    __tablename__ = 'Voeux'
-    id_voeux = db.Column(db.Integer, primary_key=True)
-    ordre = db.Column(db.Integer)
-    id_user = db.Column(db.Integer, db.ForeignKey('User.id'))
-    id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
 
 
 class actionPE(db.Model):
@@ -300,6 +339,7 @@ def update_user(id):
     user.genre = genre
     user.rank = rank
     db.session.commit()
+    return jsonify(user.serialize())
 
 
 # ----------------------------ForumInfo
@@ -319,7 +359,7 @@ def foruminfo_registration():
     info.lien_video = lien_video
     db.session.add(info)
     db.session.commit()
-
+    return jsonify(info.serialize())
 
 
 
@@ -343,138 +383,516 @@ def get_foruminfos():
 @app.route('/api/foruminfo/<int:id>', methods=['GET'])
 @auth.login_required
 def get_foruminfo(id):
-    pass
+    info = ForumInfo.query.filter_by(id_forum_info=id).first()
+
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(info.serialize())
 
 
 @app.route('/api/foruminfo/<int:id>', methods=['POST'])
 @auth.login_required
 def update_forum(id):
-    pass
+    lien_visio = request.json.get('lien_visio')
+    lien_video = request.json.get('lien_video')
 
+    if lien_visio is None or lien_video is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    info = ForumInfo.query.filter_by(id_forum_info=id).first()
+    if not info:
+        abort(400)
+    info.lien_visio = lien_visio
+    info.lien_video = lien_video
+    db.session.commit()
+    return jsonify(info.serialize())
+
+
+#-----------------------------ParticipationForum
+@app.route('/api/participationforum/registratoin', methods=['POST'])
+@auth.login_required
+def participationforum_registration():
+    id_formation = request.json.get('id_formation')
+    id_forum_info = request.json.get('id_forum_info')
+    annee = request.json.get('annee')
+
+    if id_formation is None or id_forum_info is None or annee is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    info = ParticipationForum(id_formation=id_formation)
+    info.id_forum_info = id_forum_info
+    info.annee= int(annee)
+    db.session.add(info)
+    db.session.commit()
+    return jsonify(info.serialize())
+
+
+
+
+@app.route('/api/participationforum/', methods=['GET'])
+@auth.login_required
+def get_participationsforum():
+    info = ParticipationForum.query.order_by(ParticipationForum.id_participation_forum_info).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    print(g.user.serialize())
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
+
+
+@app.route('/api/participationforum/<int:id>', methods=['GET'])
+@auth.login_required
+def get_participationforum(id):
+    info = ParticipationForum.query.filter_by(id_participation_forum_info=id).first()
+
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(info.serialize())
+
+
+@app.route('/api/participationforum/<int:id>', methods=['POST'])
+@auth.login_required
+def update_participationforum(id):
+    id_formation = request.json.get('id_formation')
+    id_forum_info = request.json.get('id_forum_info')
+    annee = request.json.get('annee')
+
+    if id_formation is None or id_forum_info is None or annee is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    info = ForumInfo.query.filter_by(id_forum_info=id).first()
+    if not info:
+        abort(400)
+    info.id_formation = id_formation
+    info.id_forum_info = id_forum_info
+    info.annee = int(annee)
+    db.session.commit()
+    return jsonify(info.serialize())
 
 # ----------------------------TypeEcole
 @app.route('/api/typeecole/registratoin', methods=['POST'])
 @auth.login_required
 def typeecole_registration():
-    pass
+    nom_type = request.json.get('nom_type')
+
+    if nom_type is None :
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    type = TypeEcole(nom_type=nom_type)
+
+    db.session.add(type)
+    db.session.commit()
+    return jsonify(type.serialize())
 
 
 @app.route('/api/typeecole/', methods=['GET'])
 @auth.login_required
 def get_typeecoles():
-    pass
+    info = TypeEcole.query.order_by(TypeEcole.nom_type).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    print(g.user.serialize())
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/typeecole/<int:id>', methods=['GET'])
 @auth.login_required
 def get_typeecole(id):
-    pass
+    info = TypeEcole.query.filter_by(id_type_ecole=id).first()
+
+    if not info:
+        return jsonify({})
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(info.serialize())
 
 
 @app.route('/api/typeecole/<int:id>', methods=['POST'])
 @auth.login_required
 def update_typeecole(id):
-    pass
+    nom_type = request.json.get('nom_type')
+    info = TypeEcole.query.filter_by(TypeEcole.id_type_ecole).first()
+
+    if nom_type is None:
+        abort(400)
+    if not info:
+        return jsonify({})
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    info.nom_type = nom_type
+    db.session.commit()
+    return jsonify(info.serialize())
 
 
 # ----------------------------Ecole
 @app.route('/api/typeecole/registratoin', methods=['POST'])
 @auth.login_required
 def ecole_registration():
-    pass
+    nom_ecole = request.json.get('nom_ecole')
+    id_type_ecole = request.json.get('id_type_ecole')
+    id_adresse_ecole = request.json.get('id_adresse_ecole')
 
+
+    if nom_ecole is None or id_type_ecole is None or id_adresse_ecole is None  :
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    ecole = Ecole.query.filter_by(nom_ecole=nom_ecole).first()
+    adresse = Adresse.query.filter_by(id_adresse=id_adresse_ecole).first()
+    type = TypeEcole.query.filter_by(id_type=id_type_ecole).first()
+    if ecole is not None:
+        abort(400)
+    if type is None or adresse is None:
+        abort(400)
+
+    ecole = Ecole(nom_ecole=nom_ecole)
+    ecole.id_type_ecole = int(id_type_ecole)
+    ecole.id_adresse_ecole = int(id_adresse_ecole)
+    db.session.add(ecole)
+    db.session.commit()
+    return jsonify(ecole.serialize())
 
 @app.route('/api/ecoles/', methods=['GET'])
 @auth.login_required
 def get_ecoles():
-    pass
+    info = Ecole.query.order_by(Ecole.nom_ecole).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    print(g.user.serialize())
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/ecole/<int:id>', methods=['GET'])
 @auth.login_required
 def get_ecole(id):
-    pass
+    ecole = Ecole.query.filter_by(id_ecole=id).first()
+
+    if ecole is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(ecole.serialize())
 
 
 @app.route('/api/ecole/<int:id>', methods=['POST'])
 @auth.login_required
 def update_ecole(id):
-    pass
+    nom_ecole = request.json.get('nom_ecole')
+    id_type_ecole = request.json.get('id_type_ecole')
+    id_adresse_ecole = request.json.get('id_adresse_ecole')
+
+    if nom_ecole is None or id_type_ecole is None or id_adresse_ecole is None:
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    ecole = Ecole.query.filter_by(id_ecole=id).first()
+    adresse = Adresse.query.filter_by(id_adresse=id_adresse_ecole).first()
+    type = TypeEcole.query.filter_by(id_type=id_type_ecole).first()
+    if ecole is None:
+        abort(400)
+    if type is None or adresse is None:
+        abort(400)
+
+
+    ecole.id_type_ecole = int(id_type_ecole)
+    ecole.id_adresse_ecole = int(id_adresse_ecole)
+    ecole.nom_ecole=nom_ecole
+    db.session.commit()
+    return jsonify(ecole.serialize())
 
 
 # ----------------------------ADRESSE
 @app.route('/api/adresse/registratoin', methods=['POST'])
 @auth.login_required
 def adresse_registration():
-    pass
+    num_rue = request.json.get('num_rue')
+    nom_rue = request.json.get('nom_rue')
+    ville = request.json.get('ville')
+    cp = request.json.get('cp')
+    pays = request.json.get('pays')
 
+    if num_rue is None or nom_rue is None or ville is None or cp is None or pays is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    adresse = Adresse.query.filter_by(num_rue=num_rue,nom_rue=nom_rue,ville=ville,cp=cp,pays=pays).first()
+    if adresse is not None:
+        abort(400)
+
+    adr = Adresse(num_rue=num_rue)
+    adr.nom_rue=nom_rue
+    adr.ville=ville
+    adr.cp=cp
+    adr.pays=pays
+    db.session.add(adr)
+    db.commit()
+    return jsonify(adr.serialize())
 
 @app.route('/api/adresses/', methods=['GET'])
 @auth.login_required
 def get_adresses():
-    pass
+    info = Adresse.query.order_by(Adresse.ville).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/adresse/<int:id>', methods=['GET'])
 @auth.login_required
 def get_adresse(id):
-    pass
+    adresse = Adresse.query.filter_by(id_adresse=id).first()
+
+    if adresse is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(adresse.serialize())
 
 
 @app.route('/api/adresse/<int:id>', methods=['POST'])
 @auth.login_required
 def update_adresse(id):
-    pass
+    num_rue = request.json.get('num_rue')
+    nom_rue = request.json.get('nom_rue')
+    ville = request.json.get('ville')
+    cp = request.json.get('cp')
+    pays = request.json.get('pays')
+
+    if num_rue is None or nom_rue is None or ville is None or cp is None or pays is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    adr = Adresse.query.filter_by(id_adresse=id).first()
+    if adr is not None:
+        abort(400)
+
+    adr.nom_rue = nom_rue
+    adr.ville = ville
+    adr.cp = cp
+    adr.pays = pays
+    db.commit()
+    return jsonify(adr.ser)
 
 
 # ----------------------------RESPONSABLE
 @app.route('/api/responsable/registratoin', methods=['POST'])
 @auth.login_required
 def responsable_registration():
-    pass
+    nom_responsable = request.json.get('nom_responsable')
+    mail_responsable = request.json.get('mail_responsable')
+    telephone_responsable = request.json.get('telephone_responsable')
 
+    if nom_responsable is None or mail_responsable is None or telephone_responsable is None:
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    res = ResponsableFormation.query.filter_by(nom_responsable=nom_responsable,mail_responsable=mail_responsable).first()
+    if res is not None :
+        abort(400)
+
+    resp = ResponsableFormation(nom_responsable=nom_responsable)
+    resp.mail_responsable = mail_responsable
+    resp.telephone_responsable = telephone_responsable
+    db.session.add(resp)
+    db.commit()
+    return jsonify(resp.serialize())
 
 @app.route('/api/responsable/', methods=['GET'])
 @auth.login_required
 def get_responsables():
-    pass
+    info = ResponsableFormation.query.order_by(ResponsableFormation.id_responsable).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/responsable/<int:id>', methods=['GET'])
 @auth.login_required
 def get_responsable(id):
-    pass
+    resp = ResponsableFormation.query.filter_by(id_responsable=id).first()
+
+    if resp is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(resp.serialize())
 
 
 @app.route('/api/responsable/<int:id>', methods=['POST'])
 @auth.login_required
 def update_responsable(id):
-    pass
+    nom_responsable = request.json.get('nom_responsable')
+    mail_responsable = request.json.get('mail_responsable')
+    telephone_responsable = request.json.get('telephone_responsable')
+
+    if nom_responsable is None or mail_responsable is None or telephone_responsable is None:
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value:
+        abort(403)
+
+    resp = ResponsableFormation.query.filter_by(id_responsable=id).first()
+    if resp is None:
+        abort(400)
+
+    resp.nom_responsable=nom_responsable
+    resp.mail_responsable = mail_responsable
+    resp.telephone_responsable = telephone_responsable
+    db.commit()
+    return jsonify(resp.serialize())
 
 
 # ----------------------------CANDIDATURE
 @app.route('/api/candidature/registratoin', methods=['POST'])
 @auth.login_required
 def candidature_registration():
-    pass
+    id_etudiant = request.json.get('id_etudiant')
+    date_candidature = request.json.get('date_candidature')
+    deadline_dossier = request.json.get('deadline_dossier')
+    validationPE = request.json.get('validationPE')
+    id_formation = request.json.get('id_formation')
 
+    if id_etudiant is None is None or date_candidature is None or deadline_dossier is None or validationPE is None or id_formation is None :
+        abort(400)
+    etu = User.query.filter_by(id_etudiant=id_etudiant).first()
+    formation = Formation.query.filter_by(id_formation=id_formation).first()
+    if etu is None or formation is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    nbVoeux = len(Candidature.query.filter_by(id_user=id_etudiant))
+
+
+
+    candidature = Candidature(id_etudiant=id_etudiant)
+    candidature.id_voeux = nbVoeux+1
+    candidature.date_candidature=date_candidature
+    candidature.deadline_dossier=deadline_dossier
+    candidature.validationPE=validationPE
+    candidature.id_formation = id_formation
+
+    db.commit()
+    return jsonify(candidature.serialize())
 
 @app.route('/api/candidature/', methods=['GET'])
 @auth.login_required
 def get_candidatures():
-    pass
+    info = Candidature.query.order_by(Candidature.id_etudiant).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/candidature/<int:id>', methods=['GET'])
 @auth.login_required
 def get_candidature(id):
-    pass
+    can = Candidature.query.filter_by(id_candidature=id).first()
+
+    if can is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(can.serialize())
 
 
 @app.route('/api/candidature/<int:id>', methods=['POST'])
 @auth.login_required
 def update_candidature(id):
-    pass
+    id_etudiant = request.json.get('id_etudiant')
+    date_candidature = request.json.get('date_candidature')
+    deadline_dossier = request.json.get('deadline_dossier')
+    validationPE = request.json.get('validationPE')
+    id_formation = request.json.get('id_formation')
+    nbVoeux = request.json.get('nbVoeux')
+    if id_etudiant is None is None or date_candidature is None or deadline_dossier is None or validationPE is None or id_formation is None:
+        abort(400)
+    etu = User.query.filter_by(id_etudiant=id_etudiant).first()
+    formation = Formation.query.filter_by(id_formation=id_formation).first()
+    if etu is None or formation is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    candidature = Candidature.query.filter_by(id_candidature=id).first()
+    if candidature is None:
+        abort(400)
+    candidature.id_etudiant=id_etudiant
+    candidature.id_voeux = nbVoeux
+    candidature.date_candidature = date_candidature
+    candidature.deadline_dossier = deadline_dossier
+    candidature.validationPE = validationPE
+    candidature.id_formation = id_formation
+
+    db.commit()
+    return jsonify(candidature.serialize())
 
 
 # ----------------------------FORMATION
@@ -551,30 +969,6 @@ def get_profil(id):
 def update_profil(id):
     pass
 
-
-# ----------------------------VOEUX
-@app.route('/api/voeux/registratoin', methods=['POST'])
-@auth.login_required
-def voeux_registration():
-    pass
-
-
-@app.route('/api/allvoeux/', methods=['GET'])
-@auth.login_required
-def get_voeuxs():
-    pass
-
-
-@app.route('/api/voeux/<int:id>', methods=['GET'])
-@auth.login_required
-def get_voeux(id):
-    pass
-
-
-@app.route('/api/voeux/<int:id>', methods=['POST'])
-@auth.login_required
-def update_voeux(id):
-    pass
 
 # ----------------------------ACTIONPE
 @app.route('/api/actionpe/registratoin', methods=['POST'])

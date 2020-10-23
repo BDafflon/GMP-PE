@@ -5,7 +5,7 @@ import tempfile
 import time
 from sys import path
 
-from flask import Flask, abort, request, jsonify, g, url_for, flash
+from flask import Flask, abort, request, jsonify, g, url_for, flash, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
 import jwt
@@ -169,7 +169,7 @@ class Candidature(db.Model):
     __tablename__ = 'Candidature'
     id_candidature = db.Column(db.Integer, primary_key=True)
     id_etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
-    id_voeux = db.Column(db.Integer, db.ForeignKey('Voeux.id_voeux'))
+    id_voeux = db.Column(db.Integer)
     date_candidature = db.Column(db.Integer)
     deadline_dossier = db.Column(db.Integer)
     validationPE = db.Column(db.Boolean)
@@ -250,14 +250,14 @@ class actionPE(db.Model):
 
 
 
-
+#Check
 @auth.verify_password
 def verify_password(username_or_token, password):
     # first try to authenticate by token
     user = User.verify_auth_token(username_or_token)
     if not user:
         # try to authenticate with username/password
-        user = User.query.filter_by(username=username_or_token).first()
+        user = User.query.filter_by(nom=username_or_token).first()
         if not user or not user.verify_password(password):
             return False
     g.user = user
@@ -274,7 +274,8 @@ def get_auth_token():
 
 
 # ----------------------------USER
-@app.route('/api/user/registratoin', methods=['POST'])
+#Check
+@app.route('/api/user/registration', methods=['POST'])
 @auth.login_required
 def user_registration():
 
@@ -289,12 +290,14 @@ def user_registration():
     rank = Rank.USER.value
 
     if nom is None or password is None or mail is None:
-        abort(400)  # missing arguments
+        abort(make_response(jsonify(errors= 'missing parameters'),  400))
     if User.query.filter_by(nom=nom).first() is not None:
         print("existing")
-        abort(400)  # existing user
+        abort(make_response(jsonify(errors= 'User already existing'),  400))
+
     if g.user.rank != Rank.ADMIN.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can add new user'), 403))
+
     user = User(nom=nom)
     user.hash_password(password)
     user.prenom = prenom
@@ -309,7 +312,7 @@ def user_registration():
     return (jsonify({'nom': user.nom}), 201,
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
-
+#Check
 @app.route('/api/users/', methods=['GET'])
 @auth.login_required
 def get_users():
@@ -322,22 +325,23 @@ def get_users():
     print(g.user.serialize())
 
     if g.user.rank != Rank.ADMIN.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can use endpoint'), 403))
 
     return jsonify(data)
 
-
+#Check
 @app.route('/api/user/<int:id>', methods=['GET'])
 @auth.login_required
 def get_user(id):
     user = User.query.get(id)
     if not user:
-        return jsonify({})
+        abort(make_response(jsonify(errors='No user '+str(id)), 404))
     if g.user.rank != Rank.ADMIN.value and g.user.id != id:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
     return jsonify(user.serialize())
 
 
+#Check
 @app.route('/api/user/<int:id>', methods=['POST'])
 @auth.login_required
 def update_user(id):
@@ -351,12 +355,11 @@ def update_user(id):
     rank = Rank.USER.value
 
     if nom is None or password is None or mail is None:
-        abort(400)  # missing arguments
-    if User.query.filter_by(nom=nom).first() is None:
-        print("not existing")
-        abort(400)  # existing user
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
+    if User.query.filter_by(id=id).first() is None:
+        abort(make_response(jsonify(errors='User not found'), 400))
     if g.user.rank != Rank.ADMIN.value and g.user.id != id:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
 
     user = User.query.get(id)
     user.hash_password(password)
@@ -372,17 +375,18 @@ def update_user(id):
 
 
 # ----------------------------ForumInfo
-@app.route('/api/foruminfo/registratoin', methods=['POST'])
+#Check
+@app.route('/api/foruminfo/registration', methods=['POST'])
 @auth.login_required
 def foruminfo_registration():
     lien_visio = request.json.get('lien_visio')
     lien_video = request.json.get('lien_video')
 
     if lien_visio is None or lien_video is None :
-        abort(400)
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
 
     if g.user.rank != Rank.ADMIN.value :
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can use endpoint'), 403))
 
     info = ForumInfo(lien_visio=lien_visio)
     info.lien_video = lien_video
@@ -391,7 +395,7 @@ def foruminfo_registration():
     return jsonify(info.serialize())
 
 
-
+#Check
 @app.route('/api/foruminfo/', methods=['GET'])
 @auth.login_required
 def get_foruminfos():
@@ -400,27 +404,27 @@ def get_foruminfos():
     for u in info:
         data.append(u.serialize())
     if not info:
-        return jsonify({})
-    print(g.user.serialize())
+        abort(make_response(jsonify(errors='Info not found'), 400))
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
 
     return jsonify(data)
 
-
+#Check
 @app.route('/api/foruminfo/<int:id>', methods=['GET'])
 @auth.login_required
 def get_foruminfo(id):
     info = ForumInfo.query.filter_by(id_forum_info=id).first()
 
     if not info:
-        return jsonify({})
+        abort(make_response(jsonify(errors='Info not found'), 400))
+
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
     return jsonify(info.serialize())
 
-
+#Check
 @app.route('/api/foruminfo/<int:id>', methods=['POST'])
 @auth.login_required
 def update_forum(id):
@@ -428,14 +432,14 @@ def update_forum(id):
     lien_video = request.json.get('lien_video')
 
     if lien_visio is None or lien_video is None:
-        abort(400)
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
 
     if g.user.rank != Rank.ADMIN.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can use endpoint'), 403))
 
     info = ForumInfo.query.filter_by(id_forum_info=id).first()
     if not info:
-        abort(400)
+        abort(make_response(jsonify(errors='Forum info not found'), 400))
     info.lien_visio = lien_visio
     info.lien_video = lien_video
     db.session.commit()
@@ -443,7 +447,7 @@ def update_forum(id):
 
 
 #-----------------------------ParticipationForum
-@app.route('/api/participationforum/registratoin', methods=['POST'])
+@app.route('/api/participationforum/registration', methods=['POST'])
 @auth.login_required
 def participationforum_registration():
     id_formation = request.json.get('id_formation')
@@ -518,16 +522,17 @@ def update_participationforum(id):
     return jsonify(info.serialize())
 
 # ----------------------------TypeEcole
-@app.route('/api/typeecole/registratoin', methods=['POST'])
+#Check
+@app.route('/api/typeecole/registration', methods=['POST'])
 @auth.login_required
 def typeecole_registration():
     nom_type = request.json.get('nom_type')
 
     if nom_type is None :
-        abort(400)
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
 
     if g.user.rank != Rank.ADMIN.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden : only admin can use endpoint'), 403))
 
     type = TypeEcole(nom_type=nom_type)
 
@@ -544,11 +549,11 @@ def get_typeecoles():
     for u in info:
         data.append(u.serialize())
     if not info:
-        return jsonify({})
+        abort(make_response(jsonify(errors='No data'), 403))
     print(g.user.serialize())
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden : only user can use endpoint'), 403))
 
     return jsonify(data)
 

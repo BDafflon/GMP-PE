@@ -197,6 +197,17 @@ class Formation(db.Model):
     type_formation = db.Column(db.Boolean)
     id_responsable = db.Column(db.Integer, db.ForeignKey('ResponsableFormation.id_responsable'))
     id_ecole = db.Column(db.Integer, db.ForeignKey('Ecole.id_ecole'))
+    def serialize(self):
+        return {
+            'id_formation': self.id_formation,
+            'specialite': self.specialite,
+            'description':self.description,
+            'site_web_url':self.site_web_url,
+            'brochure_url':self.brochure_url,
+            'alternance':self.alternance,
+            'id_formation':self.id_formation,
+            'id_ecole':self.id_ecole
+        }
 
 
 class ProfilRecruter(db.Model):
@@ -204,20 +215,38 @@ class ProfilRecruter(db.Model):
     id_profil_recruter = db.Column(db.Integer, primary_key=True)
     id_formation = db.Column(db.Integer, db.ForeignKey('Formation.id_formation'))
     id_profil = db.Column(db.Integer, db.ForeignKey('Profil.id_profil'))
+    def serialize(self):
+        return {
+            'id_profil_recruter': self.id_profil_recruter,
+            'id_formation': self.id_formation,
+            'id_profil':self.id_profil
+        }
 
 
 class Profil(db.Model):
     __tablename__ = 'Profil'
     id_profil = db.Column(db.Integer, primary_key=True)
     nom_profil = db.Column(db.String(128))
+    def serialize(self):
+        return {
+            'id_profil': self.id_profil,
+            'nom_profil': self.nom_profil
+        }
 
 
 class actionPE(db.Model):
     __tablename__ = 'actionPE'
     id_action = db.Column(db.Integer, primary_key=True)
     action = db.Column(db.String(255))
-    etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
+    id_etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
     id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
+    def serialize(self):
+        return {
+            'id_action': self.id_action,
+            'action': self.action,
+            'id_etudiant':self.id_etudiant,
+            'id_candidature':self.id_candidature
+        }
 
 
 
@@ -835,7 +864,7 @@ def candidature_registration():
     db.commit()
     return jsonify(candidature.serialize())
 
-@app.route('/api/candidature/', methods=['GET'])
+@app.route('/api/candidatures/', methods=['GET'])
 @auth.login_required
 def get_candidatures():
     info = Candidature.query.order_by(Candidature.id_etudiant).all()
@@ -899,100 +928,339 @@ def update_candidature(id):
 @app.route('/api/formation/registratoin', methods=['POST'])
 @auth.login_required
 def formation_registration():
-    pass
+    specialite = request.json.get('specialite')
+    description = request.json.get('description')
+    site_web_url = request.json.get('site_web_url')
+    brochure_url = request.json.get('brochure_url')
+    alternance = request.json.get('alternance')
+    type_formation = request.json.get('type_formation')
+    id_responsable = request.json.get('id_responsable')
+    id_ecole = request.json.get('id_ecole')
+
+    if specialite is None or description is None:
+        abort(400)
+    ecole = Ecole.query.filter_by(id_ecole=id_ecole).first()
+    if ecole is None:
+        abort(400)
+
+    formation = Formation.query.filter_by(specialite=specialite, id_ecole=id_ecole).first()
+    if formation is not None:
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    form = Formation(id_ecole=id_ecole)
+    form.specialite = specialite
+    form.description = description
+    form.site_web_url = site_web_url
+    form.brochure_url = brochure_url
+    form.alternance = alternance
+    form.type_formation = type_formation
+    form.id_responsable = id_responsable
+    form.id_ecole = ecole.id_ecole
+
+    db.session.add(form)
+    db.commit()
+    return jsonify(form.serialize())
 
 
 @app.route('/api/formation/', methods=['GET'])
 @auth.login_required
 def get_formations():
-    pass
+    info = Formation.query.order_by(Formation.id_ecole).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
 
+    return jsonify(data)
 
 @app.route('/api/formation/<int:id>', methods=['GET'])
 @auth.login_required
 def get_formation(id):
-    pass
+    formation = Formation.query.filter_by(id_formation=id).first()
+
+    if formation is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(formation.serialize())
 
 
 @app.route('/api/formation/<int:id>', methods=['POST'])
 @auth.login_required
 def update_formation(id):
-    pass
+    specialite = request.json.get('specialite')
+    description = request.json.get('description')
+    site_web_url = request.json.get('site_web_url')
+    brochure_url = request.json.get('brochure_url')
+    alternance = request.json.get('alternance')
+    type_formation = request.json.get('type_formation')
+    id_responsable = request.json.get('id_responsable')
+    id_ecole = request.json.get('id_ecole')
+
+    if specialite is None or description is None:
+        abort(400)
+    ecole = Ecole.query.filter_by(id_ecole=id_ecole).first()
+    if ecole is None:
+        abort(400)
+
+    formation = Formation.query.filter_by(id_formation=id).first()
+    if formation is None:
+        abort(400)
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    formation.id_ecole=id_ecole
+    formation.specialite = specialite
+    formation.description = description
+    formation.site_web_url = site_web_url
+    formation.brochure_url = brochure_url
+    formation.alternance = alternance
+    formation.type_formation = type_formation
+    formation.id_responsable = id_responsable
+    formation.id_ecole = ecole.id_ecole
+
+    db.commit()
+    return jsonify(formation.serialize())
 
 
 # ----------------------------PROFILRECRUTE
 @app.route('/api/profilerecrute/registratoin', methods=['POST'])
 @auth.login_required
 def profilerecrute_registration():
-    pass
+    id_formation = request.json.get('id_formation')
+    id_profil = request.json.get('id_profil')
+
+    if id_formation is None or id_profil is None:
+        abort(400)
+
+    pr = ProfilRecruter.query.filter_by(id_profil=id_profil, id_formation=id_formation).first()
+    if pr is not None:
+        abort(400)
+
+    p = Profil.query.filter_by(id_profil=id_profil).first()
+    f = Profil.query.filter_by(id_formation=id_formation).first()
+
+    if p is None or f is None:
+        abort(400)
+
+    pr = ProfilRecruter()
+    pr.id_profil=id_profil
+    pr.id_formation = id_formation
+    db.session.add(pr)
+    db.commit()
+    return jsonify(pr.serialize())
 
 
 @app.route('/api/profilrecrute/', methods=['GET'])
 @auth.login_required
 def get_profilrecrutes():
-    pass
+    info = ProfilRecruter.query.order_by(ProfilRecruter.id_profil).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/profilrecrute/<int:id>', methods=['GET'])
 @auth.login_required
 def get_profilrecrute(id):
-    pass
+    pr = ProfilRecruter.query.filter_by(id_profil_recruter=id).first()
+
+    if pr is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(pr.serialize())
 
 
 @app.route('/api/profilrecrute/<int:id>', methods=['POST'])
 @auth.login_required
 def update_profilrecrute(id):
-    pass
+    id_formation = request.json.get('id_formation')
+    id_profil = request.json.get('id_profil')
+
+    if id_formation is None or id_profil is None:
+        abort(400)
+
+    pr = ProfilRecruter.query.filter_by(id_profil_recruter=id).first()
+    if pr is None:
+        abort(400)
+
+    p = Profil.query.filter_by(id_profil=id_profil).first()
+    f = Profil.query.filter_by(id_formation=id_formation).first()
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    if p is None or f is None:
+        abort(400)
+
+
+    pr.id_profil = id_profil
+    pr.id_formation = id_formation
+    db.commit()
+    return jsonify(pr.serialize())
 
 
 # ----------------------------PROFIL
 @app.route('/api/profil/registratoin', methods=['POST'])
 @auth.login_required
 def profil_registration():
-    pass
+
+    nom_profil = request.json.get('nom_profil')
+    pr = Profil.query.filter_by(nom_profil=nom_profil).first()
+    if pr is not None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    pr = Profil(nom_profil=nom_profil)
+    db.session.add(pr)
+    db.commit()
+    return jsonify(pr.serialize())
 
 
-@app.route('/api/profil/', methods=['GET'])
+@app.route('/api/profils/', methods=['GET'])
 @auth.login_required
 def get_profils():
-    pass
+    info = Profil.query.order_by(Profil.id_profil).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/profil/<int:id>', methods=['GET'])
 @auth.login_required
 def get_profil(id):
-    pass
+    pr = Profil.query.filter_by(id_profil=id).first()
+
+    if pr is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(pr.serialize())
 
 
 @app.route('/api/profil/<int:id>', methods=['POST'])
 @auth.login_required
 def update_profil(id):
-    pass
+    nom_profil = request.json.get('nom_profil')
+    id_profil = request.json.get('id_profil')
+
+    if nom_profil is None or id_profil is None:
+        abort(400)
+
+    pr = Profil.query.filter_by(id_profil=id).first()
+    if pr is None:
+        abort(400)
+
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    pr.id_profil = id_profil
+    pr.nom_profil = nom_profil
+    db.commit()
+    return jsonify(pr.serialize())
 
 
 # ----------------------------ACTIONPE
 @app.route('/api/actionpe/registratoin', methods=['POST'])
 @auth.login_required
 def actionpe_registration():
-    pass
+    action = request.json.get('action')
+    id_etudiant = request.json.get('id_etudiant')
+    id_candidature = request.json.get('id_candidature')
 
+    if action is None or id_etudiant is None or id_candidature is None:
+        abort(400)
+
+    etu = User.query.filter_by(id_user=id_etudiant).first()
+    can = Candidature.query.filter_by(id_candidature=id_candidature).first()
+
+    if etu is None or can is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    ap = actionPE()
+    ap.action = action
+    ap.id_etudiant = id_etudiant
+    ap.id_candidature = id_candidature
+    db.session.add(ap)
+    db.commit()
+    return jsonify(ap.serialize())
 
 @app.route('/api/actionpes/', methods=['GET'])
 @auth.login_required
 def get_actionpes():
-    pass
+    info = actionPE.query.order_by(actionPE.id_etudiant).all()
+    data = []
+    for u in info:
+        data.append(u.serialize())
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
 
 
 @app.route('/api/actionpe/<int:id>', methods=['GET'])
 @auth.login_required
 def get_actionpe(id):
-    pass
+    ap = actionPE.query.filter_by(id_action=id).first()
+
+    if ap is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(ap.serialize())
 
 
 @app.route('/api/actionpe/<int:id>', methods=['POST'])
 @auth.login_required
 def update_actionpe(id):
-    pass
+
+    action = request.json.get('action')
+    id_etudiant = request.json.get('id_etudiant')
+    id_candidature = request.json.get('id_candidature')
+
+    if action is None or id_etudiant is None or id_candidature is None:
+        abort(400)
+
+    etu = User.query.filter_by(id_user=id_etudiant).first()
+    can = Candidature.query.filter_by(id_candidature=id_candidature).first()
+    ap = actionPE.query.filter_by(id_action=id).first()
+    if etu is None or can is None or ap is None:
+        abort(400)
+
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    ap.action = action
+    ap.id_etudiant = id_etudiant
+    ap.id_candidature = id_candidature
+
+    db.commit()
+    return jsonify(ap.serialize())
 
 @app.route('/')
 def get_api_endpoint():

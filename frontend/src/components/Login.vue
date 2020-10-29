@@ -60,7 +60,7 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
   @import "../assets/custom.scss";
-  @import "../../../node_modules/bootstrap/scss/bootstrap.scss";
+  @import "node_modules/bootstrap/scss/bootstrap.scss";
 
   .login {
   height: 100vh;  

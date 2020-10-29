@@ -149,7 +149,7 @@
 <style lang="scss">
   @import "../assets/custom.scss";
   @import "../assets/sb-admin-2.min.css";
-  @import "../../../node_modules/bootstrap/scss/bootstrap.scss";
+  @import "node_modules/bootstrap/scss/bootstrap.scss";
 
 .sidenav {
   height: 100%;

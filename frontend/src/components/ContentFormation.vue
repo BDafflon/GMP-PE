@@ -26,7 +26,7 @@
                   <div>
                     <b-card :title="formation.specialite" :sub-title="formation.site_web_url">
                       <b-card-text>
-                        {{formation.description}}
+                        {{formation}}
                       </b-card-text>
 
                       <b-card-text>Brochure : <span class="font-italic">{{formation.brochure_url}}</span></b-card-text>
@@ -142,24 +142,28 @@
                          <vue-single-select
                         name="maybe"
                 placeholder="Ecole"
-                            v-model="fruit"
+                            v-model="selectEcole"
                             :options="ecoleNames"
-                            :required="true" 
+                            :required="false" 
+                            
                     ></vue-single-select>
                     <vue-single-select
                         name="maybe"
                 placeholder="Formation"
-                            v-model="fruit"
-                            :options="formations"
-                            :required="true" 
+                            v-model="selectFormation"
+                            :options="allFormation"
+                            :required="false"
+                            option-label="specialite" 
+                            
                     ></vue-single-select>
 
                     <vue-single-select
                         name="maybe"
-                placeholder="Ville"
-                            v-model="fruit"
-                            :options="villes"
-                            :required="true" 
+                placeholder="Alternance"
+                            v-model="selectAlternance"
+                            :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
+                             option-label="titre" 
+                              
                     ></vue-single-select>
                     
                     </p>
@@ -196,8 +200,14 @@
       return {
         email: '',
         password: '',
-        formations:[],
-        formation : null
+        f:[],
+        //formations:[],
+        formation : null,
+        selectEcole:null,
+        selectAlternance:null,
+        selectFormation:null,
+        ecoleNames:[],
+        allFormation:[]
       }
     },
     created () {
@@ -210,9 +220,48 @@
         'accessToken',
         'logged',
         'user'
-      ])
+      ]),
+      formations: function(){
+        
+        
+        return this.filtreFormation();
+      }
+
     },
     methods: {
+      filtreFormation(){
+        this.f = []
+        this.allFormation.forEach(element => {
+           
+          if(element.nom_ecole.includes(this.selectEcole) || this.selectEcole==null){
+              if(this.selectFormation!=null){
+                  if(element.specialite.includes(this.selectFormation.specialite)){
+                      if(this.selectAlternance!=null){
+                          if(element.alternance == this.selectAlternance.id){
+                              this.f.push(element)
+                          } 
+                      }else{
+                          this.f.push(element)
+                      }
+                  } 
+              }else{
+
+                if(this.selectAlternance!=null){
+                          if(element.alternance == this.selectAlternance.id){
+                              this.f.push(element)
+                          } 
+                      }else{
+                          this.f.push(element)
+                      }
+              }
+          }
+           
+            
+            
+              
+        });
+        return this.f;
+      },
       ...mapActions([
          
       ]),
@@ -227,7 +276,7 @@
         console.debug("formation "+this.formation)
       },
       fetchData () {
-        console.debug(this.user.mail+" "+this.user.pwd)
+         
         axios({
             method: 'get',
             url: 'http://127.0.0.1:5000/api/formations/',
@@ -238,14 +287,22 @@
         })
       .then(response => {
          console.debug(response.data)
-         this.formations=response.data
+         this.allFormation=response.data
 
+        this.allFormation.forEach(element => {
+            if(!this.ecoleNames.includes(element.nom_ecole))
+            this.ecoleNames.push(element.nom_ecole)
+        });
+         
+          this.formations=this.allFormation
          if (this.$route.params.id != null)
             this.setFormation(this.$route.params.id);
       })
       .catch(error => {
         console.debug(error)
       })
+
+
     }
     }
     ,
@@ -282,7 +339,7 @@
    
  
   @import "../assets/custom.scss";
-  @import "../../../node_modules/bootstrap/scss/bootstrap.scss";
+  @import "node_modules/bootstrap/scss/bootstrap.scss";
   @import "../assets/sb-admin-2.min.css";
 
  .border {

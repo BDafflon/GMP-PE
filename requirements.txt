@@ -9,3 +9,4 @@ PyJWT
 SQLAlchemy
 Werkzeug
 Flask-RestPlus
+flask_cors

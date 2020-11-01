@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
 import jwt
 from flask_cors import CORS, cross_origin
-from sqlalchemy import engine
+from sqlalchemy import engine, desc
 
 from datetime import timedelta
 from flask import make_response, request, current_app
@@ -31,7 +31,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['CORS_HEADERS'] = 'Content-Type'
-
 
 CORS(app, origins="*", allow_headers="*")
 # extensions
@@ -72,7 +71,7 @@ class User(db.Model):
             'groupeTD': self.groupeTD,
             'mail': self.mail,
             'genre': self.genre,
-            'rank':self.rank
+            'rank': self.rank
         }
 
     @staticmethod
@@ -145,26 +144,30 @@ class Ecole(db.Model):
         return {
             'id_ecole': self.id_ecole,
             'nom_ecole': self.nom_ecole,
-            'complement_ecole' : self.complement_ecole,
+            'complement_ecole': self.complement_ecole,
             'id_type_ecole': get_type_local(self.id_type_ecole),
             'adresse': get_adresse_local(self.id_adresse_ecole),
-            'descirption':self.descirption,
+            'descirption': self.descirption,
             'formation': get_formation_by_ecole(self.id_ecole)
         }
+
 
 def get_formation_by_ecole(id):
     formations = Formation.query.filter_by(id_ecole=id).all()
     if formations is None:
         return {}
-    data=[]
+    data = []
     for f in formations:
         data.append(f.serialize())
     return data
+
+
 def get_type_local(id):
     type = TypeEcole.query.filter_by(id_type_ecole=id).first()
     if type is None:
         return jsonify({})
-    return  type.nom_type
+    return type.nom_type
+
 
 def get_adresse_local(id):
     adresse = Adresse.query.filter_by(id_adresse=id).first()
@@ -174,6 +177,7 @@ def get_adresse_local(id):
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
         return jsonify({})
     return adresse.serialize()
+
 
 class Adresse(db.Model):
     __tablename__ = 'Adresse'
@@ -208,7 +212,7 @@ class ResponsableFormation(db.Model):
         return {
             'id_responsable': self.id_responsable,
             'nom_responsable': self.nom_responsable,
-            'prenom_responsable':self.prenom_responsable,
+            'prenom_responsable': self.prenom_responsable,
             'mail_responsable': self.mail_responsable,
             'telephone_responsable': self.telephone_responsable
         }
@@ -218,7 +222,7 @@ class Candidature(db.Model):
     __tablename__ = 'Candidature'
     id_candidature = db.Column(db.Integer, primary_key=True)
     id_etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
-    id_voeux = db.Column(db.Integer)
+    etat = db.Column(db.Integer)
     date_candidature = db.Column(db.Integer)
     deadline_dossier = db.Column(db.Integer)
     validationPE = db.Column(db.Boolean)
@@ -229,11 +233,12 @@ class Candidature(db.Model):
         return {
             'id_candidature': self.id_candidature,
             'id_etudiant': self.id_etudiant,
-            'id_voeux': self.id_voeux,
+            'etat': self.etat,
             'date_candidature': self.date_candidature,
             'deadline_dossier': self.deadline_dossier,
             'validationPE': self.validationPE,
-            'id_formation': self.id_formation
+            'id_formation': self.id_formation,
+            'voeux': self.voeux
         }
 
 
@@ -245,6 +250,7 @@ class Formation(db.Model):
     site_web_url = db.Column(db.String(255))
     brochure_url = db.Column(db.String(255))
     alternance = db.Column(db.Boolean)
+    niveau = db.Column(db.Integer)
     type_formation = db.Column(db.Boolean)
     id_responsable = db.Column(db.Integer, db.ForeignKey('ResponsableFormation.id_responsable'))
     id_ecole = db.Column(db.Integer, db.ForeignKey('Ecole.id_ecole'))
@@ -260,7 +266,8 @@ class Formation(db.Model):
             'alternance': self.alternance,
             'type_formation': self.type_formation,
             'id_ecole': self.id_ecole,
-            'id_responsable':self.id_responsable
+            'niveau':self.niveau,
+            'id_responsable': self.id_responsable
         }
 
 
@@ -310,7 +317,7 @@ class actionPE(db.Model):
 @auth.verify_password
 def verify_password(username_or_token, password):
     # first try to authenticate by token
-    print("user or tocken "+username_or_token)
+    print("user or tocken " + username_or_token)
     user = User.verify_auth_token(username_or_token)
     if not user:
         # try to authenticate with username/password
@@ -326,7 +333,6 @@ def verify_password(username_or_token, password):
 @app.route('/api/token', methods=['GET', 'POST'])
 @auth.login_required
 def get_auth_token():
-
     token = g.user.generate_auth_token(600)
     return jsonify({'user': g.user.serialize(), 'token': token.decode('ascii'), 'duration': 600})
 
@@ -785,7 +791,6 @@ def get_adresses():
     return response
 
 
-
 @app.route('/api/adresse/<int:id>', methods=['GET'])
 @auth.login_required
 def get_adresse(id):
@@ -950,6 +955,94 @@ def get_candidatures():
     return jsonify(data)
 
 
+@app.route('/api/candidature/<int:id>', methods=['DELETE'])
+@auth.login_required
+def delete_candidatures(id):
+    record_obj = db.session.query(Candidature).filter(Candidature.id_candidature == id).first()
+    if record_obj is not None:
+        if record_obj.id_etudiant == g.user.id or g.user.rank != Rank.ADMIN.value:
+            db.session.delete(record_obj)
+            db.session.commit()
+            return jsonify({"message": "OK"})
+        else:
+            abort(make_response(jsonify(errors='Forbiden'), 403))
+
+    abort(make_response(jsonify(errors='no candidature found'), 403))
+
+
+@app.route('/api/candidature/up/<int:id>', methods=['GET'])
+@auth.login_required
+def up_candidatures(id):
+    can = Candidature.query.filter_by(id_candidature=id).first()
+
+    if can is not None:
+        if can.voeux != 1:
+            can2 = Candidature.query.filter_by(id_etudiant=g.user.id, voeux=can.voeux - 1).first()
+            if can2 is not None:
+                old = can.voeux
+                can.voeux = old - 1
+                can2.voeux = old
+                db.session.commit()
+                return jsonify({"message": "OK"})
+            else:
+                abort(make_response(jsonify(errors='swao error'), 403))
+        else:
+            abort(make_response(jsonify(errors='voeux is the fist'), 403))
+    else:
+        abort(make_response(jsonify(errors='no candidature found'), 403))
+
+    abort(make_response(jsonify(errors='no candidature found'), 403))
+
+
+@app.route('/api/candidature/down/<int:id>', methods=['GET'])
+@auth.login_required
+def down_candidatures(id):
+    can = Candidature.query.filter_by(id_candidature=id).first()
+    max = Candidature.query.filter_by(id_etudiant=g.user.id).order_by(desc(Candidature.voeux)).first().voeux
+    print(max)
+    if can is not None:
+        if can.voeux != max:
+            can2 = Candidature.query.filter_by(id_etudiant=g.user.id, voeux=can.voeux + 1).first()
+            if can2 is not None:
+                old = can.voeux
+                can.voeux = old + 1
+                can2.voeux = old
+                db.session.commit()
+                return jsonify({"message": "OK"})
+            else:
+                abort(make_response(jsonify(errors='swap error'), 403))
+        else:
+            abort(make_response(jsonify(errors='voeux is the last'), 403))
+    else:
+        abort(make_response(jsonify(errors='no candidature found'), 403))
+
+    abort(make_response(jsonify(errors='no candidature found'), 403))
+
+
+@app.route('/api/candidatures_user/<int:id>', methods=['GET'])
+@auth.login_required
+def get_candidatures_user(id):
+    info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
+    data = []
+    for u in info:
+        us = u.serialize()
+        if u.id_formation is not None:
+            f = Formation.query.filter_by(id_formation=u.id_formation).first()
+            us["formation"] = {'id': u.id_formation, 'nom': f.specialite}
+            if f.id_ecole is not None:
+                e = Ecole.query.filter_by(id_ecole=f.id_ecole).first()
+        us["ecole"] = {'id': f.id_ecole, "nom": e.nom_ecole}
+        data.append(us)
+        print("-----------------------")
+        print(us)
+    if not info:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+
+    return jsonify(data)
+
+
 @app.route('/api/candidature/<int:id>', methods=['GET'])
 @auth.login_required
 def get_candidature(id):
@@ -1048,30 +1141,31 @@ def get_formations():
             print("pas de id resp")
         else:
 
-            r=ResponsableFormation.query.filter_by(id_responsable=u.id_responsable).first()
-            if r is  None:
+            r = ResponsableFormation.query.filter_by(id_responsable=u.id_responsable).first()
+            if r is None:
                 print("pas de resp")
             else:
                 us["responsable"] = r.serialize()
-        if u.id_ecole is None :
+        if u.id_ecole is None:
             print("pas d'ecole")
-        else :
-            e = Ecole.query.filter_by(id_ecole = u.id_ecole).first()
-            us["nom_ecole"]=e.nom_ecole
+        else:
+            e = Ecole.query.filter_by(id_ecole=u.id_ecole).first()
+            us["nom_ecole"] = e.nom_ecole
             fs = Formation.query.filter_by(id_ecole=u.id_ecole).all()
             if fs is not None:
                 fdata = []
                 for f in fs:
                     if u.id_formation != f.id_formation:
-                        fdata.append({"id_formation":f.id_formation, "specialite":f.specialite})
+                        fdata.append({"id_formation": f.id_formation, "specialite": f.specialite})
 
-                us['formations']=fdata
-        infoforum = db.session.query(ForumInfo, ParticipationForum).filter(ForumInfo.id_forum_info == ParticipationForum.id_forum_info).add_columns()
+                us['formations'] = fdata
+        infoforum = db.session.query(ForumInfo, ParticipationForum).filter(
+            ForumInfo.id_forum_info == ParticipationForum.id_forum_info).add_columns()
 
-        infoforum = ForumInfo.query.join(ParticipationForum).filter(ParticipationForum.id_formation == u.id_formation).first()
+        infoforum = ForumInfo.query.join(ParticipationForum).filter(
+            ParticipationForum.id_formation == u.id_formation).first()
 
-
-        if infoforum is not None :
+        if infoforum is not None:
             us['ForumInfo'] = infoforum.serialize()
         print(us)
         data.append(us)

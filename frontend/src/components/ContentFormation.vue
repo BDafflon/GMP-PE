@@ -14,6 +14,7 @@
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Les Formations</h1>
+            <a v-if="formation !== null" :href="'/candidature/-1/'+formation.id_formation" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-compress-arrows-alt mr-2"></i>Candidater </a>
              </div>
 
           <!-- Content Row -->
@@ -26,9 +27,9 @@
                   <div>
                     <b-card :title="formation.specialite" :sub-title="formation.site_web_url">
                       <b-card-text>
-                        {{formation}}
+                        {{formation.description}}
                       </b-card-text>
-
+                      <b-card-text>Niveau : <span class="font-italic">Bac + {{formation.niveau}}</span></b-card-text>
                       <b-card-text>Brochure : <span class="font-italic">{{formation.brochure_url}}</span></b-card-text>
                       <b-card-text>Profils recherchés : <span class="font-italic">GMP / GIM</span></b-card-text>
                       <b-card-text>Alternance : <span class="font-italic">{{formation.alternance | bool2txt}}</span></b-card-text>
@@ -54,15 +55,16 @@
 
                             <li v-for="item in formation.formations" :key="item.id_formation" class="list-group-item d-flex justify-content-between align-items-center">
                               {{ item.specialite }}
-                              <b-button type="button" variant="primary" :to="'Formation/'+item.id_formation"><i class="fas fa-search"></i></b-button>
+                                
+                              
                             </li>
                          </ul>
                         </b-tab>
                         <b-tab title="Forum" >
                           <div class="text-left">
                     <b-card>
-                         <b-card-text>Visio: <span class="font-italic">{{formation.ForumInfo.lien_visio }}</span></b-card-text>
-                          <b-card-text>Video: <span class="font-italic">{{formation.ForumInfo.lien_video }} </span></b-card-text>
+                         <b-card-text>Visio: <span v-if="formation.ForumInfo != null" class="font-italic">{{formation.ForumInfo.lien_visio }}</span></b-card-text>
+                          <b-card-text>Video: <span v-if="formation.ForumInfo != null" class="font-italic">{{formation.ForumInfo.lien_video }} </span></b-card-text>
                           
                        
                     </b-card>
@@ -159,10 +161,20 @@
 
                     <vue-single-select
                         name="maybe"
-                placeholder="Alternance"
+                        placeholder="Alternance"
                             v-model="selectAlternance"
                             :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
                              option-label="titre" 
+                              
+                    ></vue-single-select>
+
+                    <vue-single-select
+                        name="maybe"
+                        placeholder="Niveau"
+                            v-model="selectAlternance"
+                            :options="[{'niveau':'Bac + 2','id':2},{'niveau':'Bac + 3','id':3},{'niveau':'Bac + 4','id':4},{'niveau':'Bac + 5','id':5},{'niveau':'Bac + 8','id':8}]"
+                             option-label="niveau" 
+                              
                               
                     ></vue-single-select>
                     
@@ -314,7 +326,7 @@
           return "Non";
       },
       bool2type : function(value){
-        if (value)
+        if (!value)
           return "Publique";
         else  
           return "Privée";

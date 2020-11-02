@@ -31,14 +31,14 @@
 
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item active">
-        <a class="nav-link" :href="'/candidature/'+user.id">
+        <a class="nav-link" :href="'/candidature/'+user.id+'/'">
           <i class="fas fa-file-alt mr-2"></i>
           <span>Mes candidatures</span></a>
       </li>
 
       <!-- Nav Item - Utilities Collapse Menu -->
       <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" :href="'/candidature/'+user.id+'/-1'">
           <i class="fas fa-file-medical mr-2"></i>
           <span>Nouvelle candidature</span></a>
       </li>

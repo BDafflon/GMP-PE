@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
 import jwt
 from flask_cors import CORS, cross_origin
-from sqlalchemy import engine, desc
+from sqlalchemy import engine, desc, true
 
 from datetime import timedelta
 from flask import make_response, request, current_app
@@ -37,6 +37,24 @@ CORS(app, origins="*", allow_headers="*")
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 
+class AvisProf(db.Model):
+    __tablename__ = 'AvisProf'
+    id_avis = db.Column(db.Integer, primary_key=True)
+    prof = db.Column(db.String(128))
+    avis = db.Column(db.String(255))
+    matiere = db.Column(db.String(128))
+    id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
+
+    def serialize(self):
+        """Return object data in easily serializable format"""
+        return {
+            'id_avis':self.id_avis,
+            'prof':self.prof,
+            'avis': self.avis,
+            'id_candidature':self.id_candidature,
+            'matiere':self.matiere
+
+        }
 
 class User(db.Model):
     __tablename__ = 'User'
@@ -303,6 +321,7 @@ class actionPE(db.Model):
     action = db.Column(db.String(255))
     id_etudiant = db.Column(db.Integer, db.ForeignKey('User.id'))
     id_candidature = db.Column(db.Integer, db.ForeignKey('Candidature.id_candidature'))
+    lu = db.Column(db.Boolean)
 
     def serialize(self):
         return {
@@ -335,6 +354,93 @@ def verify_password(username_or_token, password):
 def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'user': g.user.serialize(), 'token': token.decode('ascii'), 'duration': 600})
+
+
+
+# ----------------------------avis
+# Check
+@app.route('/api/avis/registration', methods=['POST'])
+@auth.login_required
+def avis_registration():
+    prof = request.json.get('prof')
+    avis = request.json.get('avis')
+    id_candidature = request.json.get('id_candidature')
+
+
+    if prof is None or avis is None or id_candidature is None:
+        abort(make_response(jsonify(errors='missing parameters'), 400))
+    if Candidature.query.filter_by(id_candidature=id_candidature).first() is None:
+        print("existing")
+        abort(make_response(jsonify(errors='User already existing'), 400))
+
+    if g.user.rank != Rank.ADMIN.value:
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can add new user'), 403))
+
+    AvisP = AvisProf(prof=prof)
+    AvisP.id_candidature=id_candidature
+    AvisP.avis=avis
+    db.session.add(AvisP)
+    db.session.commit()
+
+    return jsonify(AvisP.serialize())
+
+
+# Check
+@app.route('/api/avis/', methods=['GET'])
+@auth.login_required
+def get_avis():
+    avis = AvisProf.query.order_by(AvisProf.id_candidature).all()
+    data = []
+    for u in avis:
+        data.append(u.serialize())
+
+    if g.user.rank != Rank.ADMIN.value or g.user.rank != Rank.USER.value:
+        abort(make_response(jsonify(errors='Forbiden, ondy admin can use endpoint'), 403))
+
+    return jsonify(data)
+
+
+# Check
+@app.route('/api/avis/<int:id>', methods=['GET'])
+@auth.login_required
+def get_avis_by_candidature(id):
+    avis = AvisProf.query.filter_by(id_candidature=id).all()
+    if not avis:
+        abort(make_response(jsonify(errors='No avis ' + str(id)), 404))
+
+    if g.user.rank != Rank.ADMIN.value and g.user.id != id:
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
+
+    data = []
+    for u in avis:
+        data.append(u.serialize())
+    return jsonify(data)
+
+
+# Check
+@app.route('/api/user/<int:id>', methods=['POST'])
+@auth.login_required
+def update_avis(id):
+
+    prof = request.json.get('prof')
+    avis = request.json.get('avis')
+    id_candidature = request.json.get('id_candidature')
+
+    if prof is None or avis is None or id_candidature is None:
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
+    avis = AvisProf.query.filter_by(id_avis=id).first()
+    if avis is None:
+        abort(make_response(jsonify(errors='Avis not found'), 400))
+
+    if g.user.rank != Rank.ADMIN.value and g.user.id != id:
+        abort(make_response(jsonify(errors='Forbiden, ondy user can use endpoint'), 403))
+
+    avis.prof = prof
+    avis.id_candidature = id_candidature
+    avis.avis = avis
+
+    db.session.commit()
+    return jsonify(avis.serialize())
 
 
 # ----------------------------USER
@@ -1031,6 +1137,16 @@ def get_candidatures_user(id):
             us["formation"] = {'id': u.id_formation, 'nom': f.specialite}
             if f.id_ecole is not None:
                 e = Ecole.query.filter_by(id_ecole=f.id_ecole).first()
+
+            avis = AvisProf.query.filter_by(id_candidature=u.id_candidature).all()
+            if  avis is not None:
+                di = []
+                for a in avis:
+                    di.append(a.serialize())
+                us["avis"]=di
+
+        ap = actionPE.query.filter_by(id_candidature=u.id_candidature,id_etudiant=g.user.id, lu=0).count()
+        us['ap']=ap
         us["ecole"] = {'id': f.id_ecole, "nom": e.nom_ecole}
         data.append(us)
         print("-----------------------")
@@ -1064,27 +1180,29 @@ def update_candidature(id):
     validationPE = request.json.get('validationPE')
     id_formation = request.json.get('id_formation')
     nbVoeux = request.json.get('nbVoeux')
-    if id_etudiant is None is None or date_candidature is None or deadline_dossier is None or validationPE is None or id_formation is None:
-        abort(400)
-    etu = User.query.filter_by(id_etudiant=id_etudiant).first()
+    print(id_etudiant,date_candidature,deadline_dossier,id_formation)
+    if id_etudiant is None is None or date_candidature is None or deadline_dossier is None or id_formation is None:
+        abort(make_response(jsonify(errors='missing parameters'), 400))
+
+    etu = User.query.filter_by(id=id_etudiant).first()
     formation = Formation.query.filter_by(id_formation=id_formation).first()
     if etu is None or formation is None:
-        abort(400)
+        abort(make_response(jsonify(errors='missing etu/for'), 400))
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden'), 400))
 
     candidature = Candidature.query.filter_by(id_candidature=id).first()
     if candidature is None:
-        abort(400)
+        abort(make_response(jsonify(errors='missing candidature'), 400))
     candidature.id_etudiant = id_etudiant
-    candidature.id_voeux = nbVoeux
+    candidature.voeux = nbVoeux
     candidature.date_candidature = date_candidature
     candidature.deadline_dossier = deadline_dossier
     candidature.validationPE = validationPE
     candidature.id_formation = id_formation
 
-    db.commit()
+    db.session.commit()
     return jsonify(candidature.serialize())
 
 
@@ -1378,7 +1496,7 @@ def update_profil(id):
 
 
 # ----------------------------ACTIONPE
-@app.route('/api/actionpe/registratoin', methods=['POST'])
+@app.route('/api/actionpe/registration', methods=['POST'])
 @auth.login_required
 def actionpe_registration():
     action = request.json.get('action')
@@ -1386,23 +1504,23 @@ def actionpe_registration():
     id_candidature = request.json.get('id_candidature')
 
     if action is None or id_etudiant is None or id_candidature is None:
-        abort(400)
+        abort(make_response(jsonify(errors='missing parameters'), 400))
 
-    etu = User.query.filter_by(id_user=id_etudiant).first()
+    etu = User.query.filter_by(id=id_etudiant).first()
     can = Candidature.query.filter_by(id_candidature=id_candidature).first()
 
     if etu is None or can is None:
-        abort(400)
+        abort(make_response(jsonify(errors='Error parameters'), 400))
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden'), 403))
 
     ap = actionPE()
     ap.action = action
     ap.id_etudiant = id_etudiant
     ap.id_candidature = id_candidature
     db.session.add(ap)
-    db.commit()
+    db.session.commit()
     return jsonify(ap.serialize())
 
 
@@ -1421,16 +1539,35 @@ def get_actionpes():
     return jsonify(data)
 
 
-@app.route('/api/actionpe/<int:id>', methods=['GET'])
+
+
+@app.route('/api/actionpe/count/<int:id>', methods=['GET'])
 @auth.login_required
-def get_actionpe(id):
-    ap = actionPE.query.filter_by(id_action=id).first()
+def get_count_actionpe(id):
+    ap = actionPE.query.filter_by(id_candidature=id,lu=0).count()
 
     if ap is None:
         return jsonify({})
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
         abort(403)
-    return jsonify(ap.serialize())
+    return jsonify(ap)
+
+@app.route('/api/actionpe/<int:id>', methods=['GET'])
+@auth.login_required
+def get_actionpe(id):
+    ap = actionPE.query.filter_by(id_candidature=id).all()
+
+    data= []
+    for u in ap:
+        u.lu = 1
+        db.session.commit()
+        data.append(u.serialize())
+    print(data)
+    if ap is None:
+        return jsonify({})
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify(data)
 
 
 @app.route('/api/actionpe/<int:id>', methods=['POST'])

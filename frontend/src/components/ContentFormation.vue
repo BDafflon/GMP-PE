@@ -171,7 +171,7 @@
                     <vue-single-select
                         name="maybe"
                         placeholder="Niveau"
-                            v-model="selectAlternance"
+                            v-model="selectNiveau"
                             :options="[{'niveau':'Bac + 2','id':2},{'niveau':'Bac + 3','id':3},{'niveau':'Bac + 4','id':4},{'niveau':'Bac + 5','id':5},{'niveau':'Bac + 8','id':8}]"
                              option-label="niveau" 
                               
@@ -213,8 +213,8 @@
         email: '',
         password: '',
         f:[],
-        //formations:[],
         formation : null,
+        selectNiveau:null,
         selectEcole:null,
         selectAlternance:null,
         selectFormation:null,
@@ -244,29 +244,16 @@
       filtreFormation(){
         this.f = []
         this.allFormation.forEach(element => {
-           
-          if(element.nom_ecole.includes(this.selectEcole) || this.selectEcole==null){
-              if(this.selectFormation!=null){
-                  if(element.specialite.includes(this.selectFormation.specialite)){
-                      if(this.selectAlternance!=null){
-                          if(element.alternance == this.selectAlternance.id){
-                              this.f.push(element)
-                          } 
-                      }else{
-                          this.f.push(element)
-                      }
-                  } 
-              }else{
+        if((element.nom_ecole.includes(this.selectEcole) || this.selectEcole==null) && 
+           (this.selectFormation==null || element.specialite.includes(this.selectFormation.specialite) ) && 
+           (this.selectAlternance == null || element.alternance == this.selectAlternance.id ) && 
+           (this.selectNiveau == null || element.niveau == this.selectNiveau.id )){
+           this.f.push(element)
 
-                if(this.selectAlternance!=null){
-                          if(element.alternance == this.selectAlternance.id){
-                              this.f.push(element)
-                          } 
-                      }else{
-                          this.f.push(element)
-                      }
-              }
           }
+
+
+           
            
             
             

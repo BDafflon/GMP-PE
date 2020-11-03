@@ -133,22 +133,22 @@
                          <vue-single-select
                         name="maybe"
                 placeholder="Ecole"
-                            v-model="fruit"
+                            v-model="selectEcole"
                             :options="ecoleNames"
                             
                     ></vue-single-select>
                     <vue-single-select
                         name="maybe"
                 placeholder="Formation"
-                            v-model="fruit"
+                            v-model="selectFormation"
                             :options="formations"
                              
                     ></vue-single-select>
 
                     <vue-single-select
                         name="maybe"
-                placeholder="Ville"
-                            v-model="fruit"
+                          placeholder="Ville"
+                            v-model="selectedVille"
                             :options="villes"
                             
                     ></vue-single-select>
@@ -187,11 +187,16 @@
       return {
         email: '',
         password: '',
-        ecoles:[{"nom":"INSA","complement":"Reseau INSA","description":"Haec dum oriens diu perferret, caeli reserato tepore Constantius consulatu suo septies et Caesaris ter egressus Arelate Valentiam petit, in Gundomadum et Vadomarium fratres Alamannorum reges arma moturus, quorum crebris excursibus vastabantur confines limitibus terrae Gallorum.","ville":"20 Avenue Albert Einstein, 69100 Villeurbanne"},{"nom":"IUT"}],
+        //ecoles:[{"nom":"INSA","complement":"Reseau INSA","description":"Haec dum oriens diu perferret, caeli reserato tepore Constantius consulatu suo septies et Caesaris ter egressus Arelate Valentiam petit, in Gundomadum et Vadomarium fratres Alamannorum reges arma moturus, quorum crebris excursibus vastabantur confines limitibus terrae Gallorum.","ville":"20 Avenue Albert Einstein, 69100 Villeurbanne"},{"nom":"IUT"}],
+        allEcole:[],
         ecoleNames : [],
         formations : [],
         subecoles : [],
-        ecole : null
+        villes:[],
+        ecole : null,
+        selectEcole:null,
+        selectedVille:null,
+        selectFormation:null
       }
     },
     created () {
@@ -205,9 +210,35 @@
         'accessToken',
         'logged',
         'user'
-      ])
+      ]),
+      ecoles: function(){
+        
+        
+        return this.filtreEcole();
+      }
     },
     methods: {
+       filtreEcole(){
+        var f = []
+        this.allEcole.forEach(element => {
+        if((element.nom_ecole.includes(this.selectEcole) || this.selectEcole==null) && 
+           (this.selectedVille==null || element.adresse.ville.includes(this.selectedVille) ) && 
+           (this.selectEcole == null || element.nom_ecole == this.selectEcole ) 
+           ){
+             if(this.selectFormation == null)
+                f.push(element)
+              else{
+                element.formation.forEach(e => {
+                  if( e.specialite.includes(this.selectFormation))
+                    f.push(element)
+                });
+              }
+
+          }
+              
+        });
+        return f;
+      },
       ...mapActions([
          
       ]),
@@ -233,7 +264,21 @@
         })
       .then(response => {
          console.debug(response.data)
-         this.ecoles=response.data
+         this.allEcole=response.data
+         this.allEcole.forEach(element => {
+           if(!this.villes.includes(element.adresse.ville))
+              this.villes.push(element.adresse.ville)
+            if(!this.ecoleNames.includes(element.nom_ecole))
+              this.ecoleNames.push(element.nom_ecole)
+            if(element.formation != null){
+              element.formation.forEach(e => {
+              if(!this.formations.includes(e.specialite))
+                  this.formations.push(e.specialite)
+                
+              });
+            }
+
+         });
 
          if (this.$route.params.id != null)
             this.setEcole(this.$route.params.id);

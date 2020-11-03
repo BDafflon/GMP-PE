@@ -26,9 +26,7 @@
         Candidatures
       </div>
       <!-- Heading -->
-      <div v-if="0==user.rank" >
-      
-
+      <div v-if="2==user.rank" >
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item active">
         <a class="nav-link" :href="'/candidature/'+user.id+'/'">
@@ -36,25 +34,21 @@
           <span>Mes candidatures</span></a>
       </li>
 
-      <!-- Nav Item - Utilities Collapse Menu -->
-      <li class="nav-item active">
-        <a class="nav-link" :href="'/candidature/'+user.id+'/-1'">
-          <i class="fas fa-file-medical mr-2"></i>
-          <span>Nouvelle candidature</span></a>
-      </li>
+       
       
       </div>
       <div v-else> 
         <li class="nav-item active">
-                <a class="nav-link" href="index.html">
+                <a class="nav-link" href="/candidature/">
                   <i class="fas fa-file-alt mr-2"></i>
                   <span>Les candidatures</span></a>
               </li>
-        <li class="nav-item active">
-                <a class="nav-link" href="index.html">
-                  <i class="fas fa-file-alt mr-2"></i>
-                  <span>Les actions</span></a>
+              <li class="nav-item active">
+                <a class="nav-link" href="/etuidants">
+                  <i class="fas fa-user-cog mr-2"></i>
+                  <span>Les etudiants</span></a>
               </li>
+         
 
       </div>
       <!-- Divider -->
@@ -92,6 +86,16 @@
           <span>Les formations</span></a>
       </li>
 
+      <!-- Divider -->
+      <hr v-if="user.rank==0" class="sidebar-divider d-none d-md-block">
+      <div v-if="user.rank==0" class="sidebar-heading">
+        Configuration
+      </div>
+        <li v-if="user.rank==0" class="nav-item active">
+          <a class="nav-link" href="/import">
+            <i class="fas fa-random mr-2"></i>
+            <span>Import/Export</span></a>
+        </li>
       <!-- Divider -->
       <hr class="sidebar-divider d-none d-md-block">
 

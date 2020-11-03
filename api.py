@@ -37,6 +37,13 @@ CORS(app, origins="*", allow_headers="*")
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 
+class Modification(db.Model):
+    __tablename__ ="Modification"
+    id_modification = db.Column(db.Integer, primary_key=True)
+    type_modification= db.Column(db.Integer)
+    message = db.Column(db.String(255))
+    id_reference =  db.Column(db.Integer)
+
 class AvisProf(db.Model):
     __tablename__ = 'AvisProf'
     id_avis = db.Column(db.Integer, primary_key=True)
@@ -1015,7 +1022,7 @@ def update_responsable(id):
 
 
 # ----------------------------CANDIDATURE
-@app.route('/api/candidature/registratoin', methods=['POST'])
+@app.route('/api/candidature/registration', methods=['POST'])
 @auth.login_required
 def candidature_registration():
     id_etudiant = request.json.get('id_etudiant')
@@ -1024,25 +1031,31 @@ def candidature_registration():
     validationPE = request.json.get('validationPE')
     id_formation = request.json.get('id_formation')
 
-    if id_etudiant is None is None or date_candidature is None or deadline_dossier is None or validationPE is None or id_formation is None:
-        abort(400)
-    etu = User.query.filter_by(id_etudiant=id_etudiant).first()
+    if id_etudiant is None or id_formation is None:
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
+
+    etu = User.query.filter_by(id=id_etudiant).first()
     formation = Formation.query.filter_by(id_formation=id_formation).first()
+
     if etu is None or formation is None:
-        abort(400)
+        abort(make_response(jsonify(errors='Formation or etu not found'), 400))
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
-        abort(403)
-    nbVoeux = len(Candidature.query.filter_by(id_user=id_etudiant))
+        abort(make_response(jsonify(errors='Forbiden'), 403))
+
+    ex = Candidature.query.filter_by(id_etudiant=id_etudiant, id_formation=id_formation).first()
+    if ex is not None:
+        return jsonify(ex.serialize())
+    nbVoeux = Candidature.query.filter_by(id_etudiant=id_etudiant).count()
 
     candidature = Candidature(id_etudiant=id_etudiant)
-    candidature.id_voeux = nbVoeux + 1
+    candidature.voeux = nbVoeux + 1
     candidature.date_candidature = date_candidature
     candidature.deadline_dossier = deadline_dossier
     candidature.validationPE = validationPE
     candidature.id_formation = id_formation
-
-    db.commit()
+    db.session.add(candidature)
+    db.session.commit()
     return jsonify(candidature.serialize())
 
 
@@ -1128,7 +1141,10 @@ def down_candidatures(id):
 @app.route('/api/candidatures_user/<int:id>', methods=['GET'])
 @auth.login_required
 def get_candidatures_user(id):
-    info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
+    if g.user.rank == Rank.ADMIN.value :
+        info = Candidature.query.order_by(Candidature.voeux).all()
+    else:
+        info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
     data = []
     for u in info:
         us = u.serialize()
@@ -1143,7 +1159,10 @@ def get_candidatures_user(id):
                 di = []
                 for a in avis:
                     di.append(a.serialize())
-                us["avis"]=di
+                us["avis"] = di
+            user = User.query.filter_by(id=u.id_etudiant).first()
+            if user is not None:
+                us["nom_etudiant"]={"nom":user.nom,"prenom":user.prenom}
 
         ap = actionPE.query.filter_by(id_candidature=u.id_candidature,id_etudiant=g.user.id, lu=0).count()
         us['ap']=ap

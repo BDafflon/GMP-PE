@@ -48,7 +48,7 @@ const routes = [
     }
   },
   {
-    path: '/candidature/:idU/:idC?',
+    path: '/candidature/:idC?/:idF?',
     name: 'Candidature',
     component: Candidature,
     meta: {

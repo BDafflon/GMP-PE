@@ -371,6 +371,7 @@ def get_auth_token():
 def avis_registration():
     prof = request.json.get('prof')
     avis = request.json.get('avis')
+    matiere = request.json.get('matiere')
     id_candidature = request.json.get('id_candidature')
 
 
@@ -386,6 +387,7 @@ def avis_registration():
     AvisP = AvisProf(prof=prof)
     AvisP.id_candidature=id_candidature
     AvisP.avis=avis
+    avisP.matiere = matiere
     db.session.add(AvisP)
     db.session.commit()
 

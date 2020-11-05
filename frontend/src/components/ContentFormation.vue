@@ -14,7 +14,7 @@
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Les Formations</h1>
-            <a v-if="formation !== null" :href="'/candidature/-1/'+formation.id_formation" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-compress-arrows-alt mr-2"></i>Candidater </a>
+            <a v-if="formation !== null" :href="'/candidature/-1/'+formation.id_formation" class="d-none d-sm-inline-block btn btn-lg btn-primary shadow-sm"><i class="fas fa-compress-arrows-alt mr-2"></i>Candidater </a>
              </div>
 
           <!-- Content Row -->
@@ -56,7 +56,7 @@
                             <li v-for="item in formation.formations" :key="item.id_formation" class="list-group-item d-flex justify-content-between align-items-center">
                               {{ item.specialite }}
                                 
-                              
+                              <b-button type="button" variant="primary" :to="'Formation/'+item.id_formation"><i class="fas fa-search"></i></b-button>
                             </li>
                          </ul>
                         </b-tab>
@@ -179,7 +179,8 @@
                     ></vue-single-select>
                     
                     </p>
-                    <button type="button" class="btn btn-primary">Valider</button>
+                    <button type="button" class="btn btn-primary mr-2">Valider</button>
+                    <button type="button" class="btn btn-primary ml-2">Ajouter une formation</button>
                 </div>
               </div>
 

@@ -12,10 +12,11 @@
         <div class="container-fluid">
 
           <!-- Page Heading -->
-          <div class="d-sm-flex align-items-center justify-content-between  ">
+          <div class="d-sm-flex align-items-center    ">
             <h1 class="h3 mb-0 text-gray-800 p-2">Les Ecoles </h1> 
-            
+              
           </div>
+         
               
           <!-- Content Row -->
            
@@ -154,7 +155,9 @@
                     ></vue-single-select>
                     
                     </p>
-                    <button type="button" class="btn btn-primary">Valider</button>
+                    <button type="button" class="btn btn-primary mr-2">Valider</button>
+                    <button type="button" class="btn btn-primary ml-2">Ajouter une ecole</button>
+                
                 </div>
               </div>
 

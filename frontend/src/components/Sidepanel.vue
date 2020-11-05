@@ -29,7 +29,7 @@
       <div v-if="2==user.rank" >
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item active">
-        <a class="nav-link" :href="'/candidature/'+user.id+'/'">
+        <a class="nav-link" href="/candidature/">
           <i class="fas fa-file-alt mr-2"></i>
           <span>Mes candidatures</span></a>
       </li>
@@ -46,7 +46,7 @@
               <li class="nav-item active">
                 <a class="nav-link" href="/etuidants">
                   <i class="fas fa-user-cog mr-2"></i>
-                  <span>Les etudiants</span></a>
+                  <span>Les étudiants</span></a>
               </li>
          
 
@@ -86,16 +86,7 @@
           <span>Les formations</span></a>
       </li>
 
-      <!-- Divider -->
-      <hr v-if="user.rank==0" class="sidebar-divider d-none d-md-block">
-      <div v-if="user.rank==0" class="sidebar-heading">
-        Configuration
-      </div>
-        <li v-if="user.rank==0" class="nav-item active">
-          <a class="nav-link" href="/import">
-            <i class="fas fa-random mr-2"></i>
-            <span>Import/Export</span></a>
-        </li>
+       
       <!-- Divider -->
       <hr class="sidebar-divider d-none d-md-block">
 

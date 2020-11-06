@@ -17,6 +17,7 @@
     },
     computed: {
       ...mapState([
+'apiurl',
         'loggingIn',
         'loginError',
         'accessToken',

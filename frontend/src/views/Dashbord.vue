@@ -33,6 +33,7 @@ export default {
   },
   computed: {
       ...mapState([
+'apiurl',
         'loggingIn',
         'loginError',
         'accessToken',

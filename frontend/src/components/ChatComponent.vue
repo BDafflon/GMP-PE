@@ -67,6 +67,7 @@ export default {
     },
     computed: {
       ...mapState([
+'apiurl',
         'loggingIn',
         'loginError',
         'accessToken',
@@ -108,7 +109,7 @@ export default {
     console.debug(message)
     axios({
             method: 'post',
-            url: 'http://127.0.0.1:5000/api/actionpe/registration',
+            url: 'actionpe/registration',
             data: {
               action:message,
               id_etudiant:this.user.id,
@@ -137,7 +138,7 @@ export default {
       
       axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/actionpe/'+this.candidature.id_candidature,
+            url: 'actionpe/'+this.candidature.id_candidature,
             auth: {
               username: this.user.mail,
               password: this.user.pwd

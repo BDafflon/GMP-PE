@@ -228,6 +228,7 @@
     },
     computed: {
       ...mapState([
+'apiurl',
         'loggingIn',
         'loginError',
         'accessToken',
@@ -279,7 +280,7 @@
          
         axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/formations/',
+            url: 'formations/',
             auth: {
               username: this.user.mail,
               password: this.user.pwd

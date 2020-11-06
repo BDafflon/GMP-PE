@@ -6,9 +6,11 @@ import createPersistedState from 'vuex-persistedstate'
 
 Vue.use(Vuex)
 
+
 export default new Vuex.Store({
   plugins: [createPersistedState()],
   state: {
+    apiurl:'',
     accessToken: null,
     loggingIn: false,
     loginError: null,
@@ -20,6 +22,10 @@ export default new Vuex.Store({
     logged: state => {
       console.debug(state.logged)
       return state.logged
+    },
+    apiurl: state => {
+      console.debug(state.logged)
+      return state.apiurl
     },
     user: state => {
       console.debug(state.logged)
@@ -42,6 +48,10 @@ export default new Vuex.Store({
       console.debug(m)
       state.user.pwd = m;
     },
+    setAPI: (state, m) => {
+      console.debug(m)
+      state.apiurl = m;
+    },
     loginStart: state => state.loggingIn = true,
     loginStop: (state, errorMessage) => {
       state.loggingIn = false;
@@ -60,8 +70,7 @@ export default new Vuex.Store({
     doLogin({ commit }, loginData) {
       commit('loginStart');
       
-      
-      axios.post('http://127.0.0.1:5000/api/token', {}, {
+      axios.post('token', {}, {
         auth: {
           username: loginData.email,
           password: loginData.password

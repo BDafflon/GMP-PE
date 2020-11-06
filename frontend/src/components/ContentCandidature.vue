@@ -251,7 +251,7 @@
            
           axios({
             method: 'post',
-            url: 'http://127.0.0.1:5000/api/candidature/registration',
+            url: 'candidature/registration',
             data: {
               
               id_etudiant : this.user.id,
@@ -288,6 +288,7 @@
     },
     computed: {
       ...mapState([
+'apiurl',
         'loggingIn',
         'loginError',
         'accessToken',
@@ -325,7 +326,7 @@
         console.debug(this.prof+" "+this.avis+" "+this.candidature.id_candidature)
         axios({
           method: 'post',
-          url: 'http://127.0.0.1:5000/api/avis/registration',
+          url: 'avis/registration',
           data: {
   
             prof : this.prof,
@@ -359,7 +360,7 @@
           this.edit = false
           axios({
             method: 'post',
-            url: 'http://127.0.0.1:5000/api/candidature/'+this.candidature.id_candidature,
+            url: 'candidature/'+this.candidature.id_candidature,
             data: {
               
               id_etudiant : this.candidature.id_etudiant,
@@ -388,7 +389,7 @@
         if(confirm('Etes vous sur de vouloir supprimer cet candidature (definitif) ?')){
           axios({
             method: 'delete',
-            url: 'http://127.0.0.1:5000/api/candidature/'+event.id_candidature,
+            url: 'candidature/'+event.id_candidature,
             auth: {
               username: this.user.mail,
               password: this.user.pwd
@@ -420,7 +421,7 @@
        
       axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/candidature/up/'+event.id_candidature,
+            url: 'candidature/up/'+event.id_candidature,
             auth: {
               username: this.user.mail,
               password: this.user.pwd
@@ -437,7 +438,7 @@
     down: function (event) {
       axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/candidature/down/'+event.id_candidature,
+            url: 'candidature/down/'+event.id_candidature,
             auth: {
               username: this.user.mail,
               password: this.user.pwd
@@ -473,7 +474,7 @@
       fetchDataCandidature(){
         axios({
               method: 'get',
-              url: 'http://127.0.0.1:5000/api/candidatures_user/'+this.user.id,
+              url: 'candidatures_user/'+this.user.id,
               auth: {
                 username: this.user.mail,
                 password: this.user.pwd
@@ -507,7 +508,7 @@
         
       axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/formations/',
+            url: 'formations/',
             auth: {
               username: this.user.mail,
               password: this.user.pwd
@@ -526,7 +527,7 @@
 
       axios({
             method: 'get',
-            url: 'http://127.0.0.1:5000/api/ecoles/',
+            url: 'ecoles/',
             auth: {
               username: this.user.mail,
               password: this.user.pwd

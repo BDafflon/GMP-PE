@@ -1631,5 +1631,11 @@ def get_resource():
 if __name__ == '__main__':
     if not os.path.exists('db.sqlite'):
         db.create_all()
+        u = User(mail="admin@admin.fr")
+        u.hash_password("azerty")
+        u.rank=0
+        db.session.add(u)
+        db.session.commit()
 
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=5050)
+

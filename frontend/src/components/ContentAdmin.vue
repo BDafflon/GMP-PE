@@ -1,391 +1,469 @@
 <template>
- 
+  <!-- Main Content -->
+  <div id="content">
+    <!-- Topbar -->
+    <NavbarC> </NavbarC>
+    <!-- End of Topbar -->
 
-      <!-- Main Content -->
-      <div id="content">
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+      <!-- Page Heading -->
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 v-if="0==user.rank" class="h3 mb-0 text-gray-800">
+          Tableau de bord d'administration
+        </h1>
+      </div>
 
-        <!-- Topbar -->
-         <NavbarC> </NavbarC>
-        <!-- End of Topbar -->
+      <!-- Content Row -->
 
-        <!-- Begin Page Content -->
-        <div class="container-fluid">
+      <!-- Content Row -->
 
-          <!-- Page Heading -->
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 v-if="0==user.rank" class="h3 mb-0 text-gray-800">Tableau de bord d'administration</h1>
-
-             </div>
-
-          <!-- Content Row -->
-          
-          <!-- Content Row -->
-
-           
-
-          <!-- Content Row -->
-          <div class="row">
-
-            <!-- Content Column -->
-            <div class="col-md-8 mb-4">
-
-              <!-- Project Card Example -->
-              <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Candidatures</h6>
-                </div>
-                <div  class="card-body">
-                  <div class="candidature-area">
-                  <ul class="list-group">
-                    <li class="list-group-item" v-for="item in candidatures" :key="item.id_candidature"> 
-                      <div v-if="user.rank==2" class="row align-items-center">
-                        <div class="col-sm-2">
-                          
-                          <a v-on:click="up(item)" class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-up"></i></a>
-                          <a v-on:click="down(item)" class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-down"></i></a></div>
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-
-                      <div v-if="user.rank==0" class="row align-items-center">
-                        <div class="col-sm-2">
-                          {{item.nom_etudiant.nom | capitalize}} {{item.nom_etudiant.prenom | firstLetter}}.
-                        </div>  
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                  </div>
-                   
-                   
-                   
-                </div>
-              </div>
-
-               
-
+      <!-- Content Row -->
+      <div class="row">
+        <!-- Content Column -->
+        <div class="col-md-8 mb-4">
+          <!-- Project Card Example -->
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Candidatures</h6>
             </div>
+            <div class="card-body">
+              <div class="candidature-area">
+                <ul class="list-group">
+                  <li
+                    class="list-group-item"
+                    v-for="item in candidatures"
+                    :key="item.id_candidature"
+                  >
+                    <div v-if="user.rank==2" class="row align-items-center">
+                      <div class="col-sm-2">
+                        <a
+                          v-on:click="up(item)"
+                          class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-up"></i
+                        ></a>
+                        <a
+                          v-on:click="down(item)"
+                          class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-down"></i
+                        ></a>
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
 
-            <div class="col-md-4 mb-4">
-                <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Filtre Candidature</h6>
-                </div>
-                <div class="card-body">
-                    <p class="d-inline">
-                      <vue-single-select
-                        v-model="selectAlternance"
-                        placeholder="Messages"
-                            :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
-                             option-label="titre" 
-                            
-                    ></vue-single-select>
-                         <vue-single-select
-                        name="maybe"
-                        placeholder="Ecole"
-                            v-model="ecoleSelected"
-                            :options="allecoles"
-                            option-label="nom_ecole" 
-                    ></vue-single-select>
-                    <vue-single-select
-                        name="maybe"
-                placeholder="Formation"
-                            v-model="formation"
-                            :options="formations"
-                            option-label="specialite" 
-                    ></vue-single-select>
-                    <vue-single-select
-                        name="maybe"
-                placeholder="Nom d'etudiant"
-                            v-model="formation"
-                            :options="formations"
-                            option-label="specialite" 
-                    ></vue-single-select>
-                    </p>
-                    <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">Exporter</a>
-                
-                </div>
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+
+                    <div v-if="user.rank==0" class="row align-items-center">
+                      <div class="col-sm-2">
+                        {{item.nom_etudiant.nom | capitalize}}
+                        {{item.nom_etudiant.prenom | firstLetter}}.
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
+
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
               </div>
-              <!-- Illustrations -->
-               
-
-              <!-- Approach -->
-              
-
             </div>
           </div>
-
-          <div class="row">
-
-            <!-- Content Column -->
-            <div class="col-md-8 mb-4">
-
-              <!-- Project Card Example -->
-              <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Formation</h6>
-                </div>
-                <div  class="card-body">
-                  <div class="candidature-area">
-                  <ul class="list-group">
-                    <li class="list-group-item" v-for="item in candidatures" :key="item.id_candidature"> 
-                      <div v-if="user.rank==2" class="row align-items-center">
-                        <div class="col-sm-2">
-                          
-                          <a v-on:click="up(item)" class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-up"></i></a>
-                          <a v-on:click="down(item)" class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-down"></i></a></div>
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-
-                      <div v-if="user.rank==0" class="row align-items-center">
-                        <div class="col-sm-2">
-                          {{item.nom_etudiant.nom | capitalize}} {{item.nom_etudiant.prenom | firstLetter}}.
-                        </div>  
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                  </div>
-                   
-                   
-                   
-                </div>
-              </div>
-
-               
-
-            </div>
-
-            <div class="col-md-4 mb-4">
-                <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Filtre Formation</h6>
-                </div>
-                <div class="card-body">
-                    <p class="d-inline">
-                      <vue-single-select
-                        v-model="selectAlternance"
-                        placeholder="A valider"
-                            :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
-                             option-label="titre" 
-                            
-                    ></vue-single-select>
-                         <vue-single-select
-                        name="maybe"
-                        placeholder="A Modifier"
-                            v-model="ecoleSelected"
-                            :options="allecoles"
-                            option-label="nom_ecole" 
-                    ></vue-single-select>
-                    <vue-single-select
-                        name="maybe"
-                placeholder="Ecole"
-                            v-model="formation"
-                            :options="formations"
-                            option-label="specialite" 
-                    ></vue-single-select>
-                    <vue-single-select
-                        name="maybe"
-                placeholder="Formation"
-                            v-model="formation"
-                            :options="formations"
-                            option-label="specialite" 
-                    ></vue-single-select>
-                    <vue-single-select
-                        name="maybe"
-                placeholder="Ville"
-                            v-model="formation"
-                            :options="formations"
-                            option-label="specialite" 
-                    ></vue-single-select>
-                    
-                    
-                    </p>
-                    <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">Exporter</a>
-                    <a class="d-none text-white mt-2 mr-2 ml-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">Importer</a>
-                
-                </div>
-              </div>
-              <!-- Illustrations -->
-               
-
-              <!-- Approach -->
-              
-
-            </div>
-          </div>
-
-
-          <!-- Ecole -->
-          <div class="row">
-
-            <!-- Content Column -->
-            <div class="col-md-8 mb-4">
-
-              <!-- Project Card Example -->
-              <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Ecole</h6>
-                </div>
-                <div  class="card-body">
-                  <div class="candidature-area">
-                  <ul class="list-group">
-                    <li class="list-group-item" v-for="item in candidatures" :key="item.id_candidature"> 
-                      <div v-if="user.rank==2" class="row align-items-center">
-                        <div class="col-sm-2">
-                          
-                          <a v-on:click="up(item)" class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-up"></i></a>
-                          <a v-on:click="down(item)" class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-arrow-down"></i></a></div>
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-
-                      <div v-if="user.rank==0" class="row align-items-center">
-                        <div class="col-sm-2">
-                          {{item.nom_etudiant.nom | capitalize}} {{item.nom_etudiant.prenom | firstLetter}}.
-                        </div>  
-                        <div class="col-sm-7">
-                             {{item.ecole.nom}} - {{item.formation.nom}}
-                        </div>
-                        <div class="col-sm-3">
-                          <a v-if="item.ap != 0" class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                            <i class="fas fa-envelope fa-fw"></i>
-                            <!-- Counter - Messages -->
-                            <span class="badge badge-danger badge-counter">{{item.ap}}</span>
-                          </a>
-
-                          <a v-on:click="setCandidature(item.id_candidature)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-search"></i></a>
-                          <a v-on:click="trash(item)"  class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-trash-alt"></i></a>
-
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                  </div>
-                   
-                   
-                   
-                </div>
-              </div>
-
-               
-
-            </div>
-
-            <div class="col-md-4 mb-4">
-                <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                  <h6 class="m-0 font-weight-bold text-primary">Filtre Ecole</h6>
-                </div>
-                <div class="card-body">
-                    <p class="d-inline">
-                      <vue-single-select
-                        v-model="selectAlternance"
-                        placeholder="A valider"
-                            :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
-                             option-label="titre" 
-                            
-                    ></vue-single-select>
-                         <vue-single-select
-                        name="maybe"
-                        placeholder="A Modifier"
-                            v-model="ecoleSelected"
-                            :options="allecoles"
-                            option-label="nom_ecole" 
-                    ></vue-single-select>
-                    
-                    
-                    
-                    </p>
-                    <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">Exporter</a>
-                    <a class="d-none text-white mt-2 mr-2 ml-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">Importer</a>
-                
-                </div>
-              </div>
-              <!-- Illustrations -->
-               
-
-              <!-- Approach -->
-              
-
-            </div>
-          </div>
-
         </div>
 
+        <div class="col-md-4 mb-4">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">
+                Filtre Candidature
+              </h6>
+            </div>
+            <div class="card-body">
+              <p class="d-inline">
+                <vue-single-select
+                  v-model="selectAlternance"
+                  placeholder="Messages"
+                  :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
+                  option-label="titre"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Ecole"
+                  v-model="ecoleSelected"
+                  :options="allecoles"
+                  option-label="nom_ecole"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Formation"
+                  v-model="formation"
+                  :options="formations"
+                  option-label="specialite"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Nom d'etudiant"
+                  v-model="formation"
+                  :options="formations"
+                  option-label="specialite"
+                ></vue-single-select>
+              </p>
+              <a
+                class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                >Exporter</a
+              >
+            </div>
+          </div>
+          <!-- Illustrations -->
 
-
-        
-        <!-- /.container-fluid -->
-
+          <!-- Approach -->
+        </div>
       </div>
-      <!-- End of Main Content -->
 
-      
-      
+      <div class="row">
+        <!-- Content Column -->
+        <div class="col-md-8 mb-4">
+          <!-- Project Card Example -->
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Formation</h6>
+            </div>
+            <div class="card-body">
+              <div class="candidature-area">
+                <ul class="list-group">
+                  <li
+                    class="list-group-item"
+                    v-for="item in candidatures"
+                    :key="item.id_candidature"
+                  >
+                    <div v-if="user.rank==2" class="row align-items-center">
+                      <div class="col-sm-2">
+                        <a
+                          v-on:click="up(item)"
+                          class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-up"></i
+                        ></a>
+                        <a
+                          v-on:click="down(item)"
+                          class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-down"></i
+                        ></a>
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
+
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+
+                    <div v-if="user.rank==0" class="row align-items-center">
+                      <div class="col-sm-2">
+                        {{item.nom_etudiant.nom | capitalize}}
+                        {{item.nom_etudiant.prenom | firstLetter}}.
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
+
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">
+                Filtre Formation
+              </h6>
+            </div>
+            <div class="card-body">
+              <p class="d-inline">
+                <vue-single-select
+                  v-model="selectAlternance"
+                  placeholder="A valider"
+                  :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
+                  option-label="titre"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="A Modifier"
+                  v-model="ecoleSelected"
+                  :options="allecoles"
+                  option-label="nom_ecole"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Ecole"
+                  v-model="formation"
+                  :options="formations"
+                  option-label="specialite"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Formation"
+                  v-model="formation"
+                  :options="formations"
+                  option-label="specialite"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Ville"
+                  v-model="formation"
+                  :options="formations"
+                  option-label="specialite"
+                ></vue-single-select>
+              </p>
+              <a
+                class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                >Exporter</a
+              >
+              <a
+                class="d-none text-white mt-2 mr-2 ml-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                >Importer</a
+              >
+            </div>
+          </div>
+          <!-- Illustrations -->
+
+          <!-- Approach -->
+        </div>
+      </div>
+
+      <!-- Ecole -->
+      <div class="row">
+        <!-- Content Column -->
+        <div class="col-md-8 mb-4">
+          <!-- Project Card Example -->
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Ecole</h6>
+            </div>
+            <div class="card-body">
+              <div class="candidature-area">
+                <ul class="list-group">
+                  <li
+                    class="list-group-item"
+                    v-for="item in candidatures"
+                    :key="item.id_candidature"
+                  >
+                    <div v-if="user.rank==2" class="row align-items-center">
+                      <div class="col-sm-2">
+                        <a
+                          v-on:click="up(item)"
+                          class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-up"></i
+                        ></a>
+                        <a
+                          v-on:click="down(item)"
+                          class="d-none ml-1 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-arrow-down"></i
+                        ></a>
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
+
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+
+                    <div v-if="user.rank==0" class="row align-items-center">
+                      <div class="col-sm-2">
+                        {{item.nom_etudiant.nom | capitalize}}
+                        {{item.nom_etudiant.prenom | firstLetter}}.
+                      </div>
+                      <div class="col-sm-7">
+                        {{item.ecole.nom}} - {{item.formation.nom}}
+                      </div>
+                      <div class="col-sm-3">
+                        <a
+                          v-if="item.ap != 0"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                        >
+                          <i class="fas fa-envelope fa-fw"></i>
+                          <!-- Counter - Messages -->
+                          <span
+                            class="badge badge-danger badge-counter"
+                            >{{item.ap}}</span
+                          >
+                        </a>
+
+                        <a
+                          v-on:click="setCandidature(item.id_candidature)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-search"></i
+                        ></a>
+                        <a
+                          v-on:click="trash(item)"
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          ><i class="fas fa-trash-alt"></i
+                        ></a>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Filtre Ecole</h6>
+            </div>
+            <div class="card-body">
+              <p class="d-inline">
+                <vue-single-select
+                  v-model="selectAlternance"
+                  placeholder="A valider"
+                  :options="[{'titre':'OUI','id':true},{'titre':'NON','id':false}]"
+                  option-label="titre"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="A Modifier"
+                  v-model="ecoleSelected"
+                  :options="allecoles"
+                  option-label="nom_ecole"
+                ></vue-single-select>
+              </p>
+              <a
+                class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                >Exporter</a
+              >
+              <a
+                class="d-none text-white mt-2 mr-2 ml-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                >Importer</a
+              >
+            </div>
+          </div>
+          <!-- Illustrations -->
+
+          <!-- Approach -->
+        </div>
+      </div>
+    </div>
+
+    <!-- /.container-fluid -->
+  </div>
+  <!-- End of Main Content -->
 </template>
 
 <script>
@@ -418,15 +496,15 @@
       }
     },
     created () {
-       
-      
+
+
         if(this.$route.params.idC == -1 && this.$route.params.idF != null){
-           
+
           axios({
             method: 'post',
             url: 'candidature/registration',
             data: {
-              
+
               id_etudiant : this.user.id,
               id_formation : this.$route.params.idF
 
@@ -437,14 +515,14 @@
             }
           })
           .then(response => {
-              
+
               console.debug(response.data.id_candidature)
               this.candidature = response.data
               this.fetchData()
 
-             
-             
-              
+
+
+
           })
           .catch(error => {
             console.debug(error)
@@ -455,7 +533,7 @@
         this.fetchData()
   }
 
-       
+
 
 
     },
@@ -469,8 +547,8 @@
         'user'
       ]),
       ecoles: function(){
-        
-        
+
+
         return this.filtreEcole();
       },
       ecoleSelected: {
@@ -493,7 +571,7 @@
     },
     methods: {
       ...mapActions([
-         
+
       ]),
       sendAvis: function(){
         console.debug(this.prof+" "+this.avis+" "+this.candidature.id_candidature)
@@ -501,7 +579,7 @@
           method: 'post',
           url: 'avis/registration',
           data: {
-  
+
             prof : this.prof,
             avis : this.avis,
             id_candidature : this.candidature.id_candidature
@@ -513,14 +591,14 @@
           }
         })
         .then(response => {
-            
+
             console.debug(response)
-             
+
             this.fetchData()
 
-          
-          
-            
+
+
+
         })
         .catch(error => {
           console.debug(error)
@@ -534,7 +612,7 @@
             method: 'post',
             url: 'candidature/'+this.candidature.id_candidature,
             data: {
-              
+
               id_etudiant : this.candidature.id_etudiant,
               date_candidature :Date.parse(this.candidature.date_candidature),
               deadline_dossier : Date.parse(this.candidature.deadline_dossier),
@@ -548,9 +626,9 @@
             }
         })
       .then(response => {
-          
+
           console.debug(response)
-          
+
       })
       .catch(error => {
         console.debug(error)
@@ -590,7 +668,7 @@
             });
     },
     up: function (event) {
-       
+
       axios({
             method: 'get',
             url: 'candidature/up/'+event.id_candidature,
@@ -628,7 +706,7 @@
         return value*20
       },
       getstat (value){
-           
+
           if (value == 1)
             return "bg-danger"
           if(value==2)
@@ -637,7 +715,7 @@
             return "bg-info"
           if(value==4)
             return "bg-success"
-          return "bg-secondary"  
+          return "bg-secondary"
       },
       timeConverter(value){
         return new Date(value).toISOString().slice(0,10);
@@ -656,7 +734,7 @@
           console.debug('------------------------------------')
           console.debug(response.data)
           this.candidatures = response.data
-          
+
             console.debug('+++++++++++++++++++++++++++++++')
             this.candidatures.forEach(element => {
 
@@ -668,7 +746,7 @@
                 if (element.date_candidature != null)
                   this.candidature.date_candidature = this.timeConverter(element.date_candidature)
             });
-          
+
         })
         .catch(error => {
           console.debug(error)
@@ -677,7 +755,7 @@
       },
       fetchData () {
          this.fetchDataCandidature()
-        
+
       axios({
             method: 'get',
             url: 'formations/',
@@ -687,11 +765,11 @@
             }
         })
       .then(response => {
-          
+
          this.allFormation=response.data
 
-         
-          
+
+
       })
       .catch(error => {
         console.debug(error)
@@ -706,10 +784,10 @@
             }
         })
       .then(response => {
-          
+
          this.allecoles=response.data
 
-          
+
       })
       .catch(error => {
         console.debug(error)
@@ -718,7 +796,7 @@
 
     }
 
-    
+
     },
     filters: {
       len: function(value){
@@ -726,18 +804,18 @@
       },
       lenComplete: function(value){
         var i=0
-         
-        
+
+
         value.forEach(element => {
-           
+
           if (element.etat==4)
            i=i+1
         });
-         
+
         //  this.firstD = this.timeConverter(min)
         return value.length - i
       },
-       
+
       etat2pourcent: function(value){
           return value*20
       },
@@ -749,30 +827,25 @@
       firstLetter: function (value) {
         if (!value) return ''
         value = value.toString()
-        return value.charAt(0).toUpperCase() 
+        return value.charAt(0).toUpperCase()
       }
     }
   }
 </script>
 
-
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-   
-  @import "../assets/custom.scss";
-  @import "node_modules/bootstrap/scss/bootstrap.scss";
-  @import "../assets/sb-admin-2.min.css";
+@import "../assets/custom.scss";
+@import "node_modules/bootstrap/scss/bootstrap.scss";
+@import "../assets/sb-admin-2.min.css";
 
 .candidature-area {
-/*   border: 1px solid #ccc; */
+  /*   border: 1px solid #ccc; */
   background: white;
   max-height: 30vh;
   padding: 1em;
   overflow: auto;
-   
+
   margin: 0 auto 2em auto;
-  }
-
- 
-
+}
 </style>

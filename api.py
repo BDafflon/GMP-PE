@@ -771,29 +771,33 @@ def update_typeecole(id):
 
 
 # ----------------------------Ecole
-@app.route('/api/typeecole/registration', methods=['POST'])
+@app.route('/api/ecole/registration', methods=['POST'])
 @auth.login_required
 def ecole_registration():
     nom_ecole = request.json.get('nom_ecole')
     id_type_ecole = request.json.get('id_type_ecole')
+    complement = request.json.get('complement')
+    description = request.json.get('description')
     id_adresse_ecole = request.json.get('id_adresse_ecole')
 
     if nom_ecole is None or id_type_ecole is None or id_adresse_ecole is None:
-        abort(400)
+        abort(make_response(jsonify(errors='missing data'), 400))
     if g.user.rank != Rank.ADMIN.value:
-        abort(403)
+        abort(make_response(jsonify(errors='Forbiden'), 403))
 
     ecole = Ecole.query.filter_by(nom_ecole=nom_ecole).first()
     adresse = Adresse.query.filter_by(id_adresse=id_adresse_ecole).first()
-    type = TypeEcole.query.filter_by(id_type=id_type_ecole).first()
+    type = TypeEcole.query.filter_by(id_type_ecole=id_type_ecole).first()
     if ecole is not None:
-        abort(400)
+        abort(make_response(jsonify(errors='Existing'), 403))
     if type is None or adresse is None:
-        abort(400)
+        abort(make_response(jsonify(errors='missing type / missing adress'), 403))
 
     ecole = Ecole(nom_ecole=nom_ecole)
     ecole.id_type_ecole = int(id_type_ecole)
     ecole.id_adresse_ecole = int(id_adresse_ecole)
+    ecole.description = description
+    ecole.complement_ecole = complement
     db.session.add(ecole)
     db.session.commit()
     return jsonify(ecole.serialize())
@@ -843,7 +847,7 @@ def update_ecole(id):
 
     ecole = Ecole.query.filter_by(id_ecole=id).first()
     adresse = Adresse.query.filter_by(id_adresse=id_adresse_ecole).first()
-    type = TypeEcole.query.filter_by(id_type=id_type_ecole).first()
+    type = TypeEcole.query.filter_by(id_type_ecole=id_type_ecole).first()
     if ecole is None:
         abort(400)
     if type is None or adresse is None:
@@ -867,14 +871,14 @@ def adresse_registration():
     pays = request.json.get('pays')
 
     if num_rue is None or nom_rue is None or ville is None or cp is None or pays is None:
-        abort(400)
+        abort(make_response(jsonify(errors='Missing parameters'), 400))
 
     if g.user.rank != Rank.ADMIN.value:
         abort(403)
 
     adresse = Adresse.query.filter_by(num_rue=num_rue, nom_rue=nom_rue, ville=ville, cp=cp, pays=pays).first()
     if adresse is not None:
-        abort(400)
+        return jsonify(adresse.serialize())
 
     adr = Adresse(num_rue=num_rue)
     adr.nom_rue = nom_rue
@@ -946,10 +950,11 @@ def update_adresse(id):
 
 
 # ----------------------------RESPONSABLE
-@app.route('/api/responsable/registratoin', methods=['POST'])
+@app.route('/api/responsable/registration', methods=['POST'])
 @auth.login_required
 def responsable_registration():
     nom_responsable = request.json.get('nom_responsable')
+    prenom_responsable = request.json.get('prenom_responsable')
     mail_responsable = request.json.get('mail_responsable')
     telephone_responsable = request.json.get('telephone_responsable')
 
@@ -966,12 +971,13 @@ def responsable_registration():
     resp = ResponsableFormation(nom_responsable=nom_responsable)
     resp.mail_responsable = mail_responsable
     resp.telephone_responsable = telephone_responsable
+    resp.prenom_responsable = prenom_responsable
     db.session.add(resp)
-    db.commit()
+    db.session.commit()
     return jsonify(resp.serialize())
 
 
-@app.route('/api/responsable/', methods=['GET'])
+@app.route('/api/responsables/', methods=['GET'])
 @auth.login_required
 def get_responsables():
     info = ResponsableFormation.query.order_by(ResponsableFormation.id_responsable).all()
@@ -1228,7 +1234,7 @@ def update_candidature(id):
 
 
 # ----------------------------FORMATION
-@app.route('/api/formation/registratoin', methods=['POST'])
+@app.route('/api/formation/registration', methods=['POST'])
 @auth.login_required
 def formation_registration():
     specialite = request.json.get('specialite')
@@ -1239,6 +1245,7 @@ def formation_registration():
     type_formation = request.json.get('type_formation')
     id_responsable = request.json.get('id_responsable')
     id_ecole = request.json.get('id_ecole')
+    niveau = request.json.get('niveau')
 
     if specialite is None or description is None:
         abort(400)
@@ -1258,12 +1265,13 @@ def formation_registration():
     form.site_web_url = site_web_url
     form.brochure_url = brochure_url
     form.alternance = alternance
+    form.niveau = niveau
     form.type_formation = type_formation
     form.id_responsable = id_responsable
     form.id_ecole = ecole.id_ecole
 
     db.session.add(form)
-    db.commit()
+    db.session.commit()
     return jsonify(form.serialize())
 
 

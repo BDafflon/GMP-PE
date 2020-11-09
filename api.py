@@ -966,7 +966,7 @@ def responsable_registration():
     res = ResponsableFormation.query.filter_by(nom_responsable=nom_responsable,
                                                mail_responsable=mail_responsable).first()
     if res is not None:
-        abort(400)
+        return jsonify(res.serialize())
 
     resp = ResponsableFormation(nom_responsable=nom_responsable)
     resp.mail_responsable = mail_responsable
@@ -1264,9 +1264,9 @@ def formation_registration():
     form.description = description
     form.site_web_url = site_web_url
     form.brochure_url = brochure_url
-    form.alternance = alternance
-    form.niveau = niveau
-    form.type_formation = type_formation
+    form.alternance = bool(int(alternance))
+    form.niveau = int(niveau)
+    form.type_formation = bool(0)
     form.id_responsable = id_responsable
     form.id_ecole = ecole.id_ecole
 

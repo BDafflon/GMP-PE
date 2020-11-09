@@ -37,7 +37,7 @@
 
 
           </div>
-          <div class="col-sm-5">
+          <div class="col-sm-5 mt-3">
                 <vue-single-select class="d-inline"
                   name="maybe"
                   placeholder="Rechercher une adresse"
@@ -151,7 +151,7 @@
 
           //empty string at end?
           for (var i=1;i<ecolesTab.length;i++){
-            if(ecolesTab[i].length == 10){
+            if(ecolesTab[i].length >= 10){
               
               this.numRue = ecolesTab[i][5]
               this.nomRue = ecolesTab[i][6]
@@ -165,7 +165,7 @@
               this.nomEcole = ecolesTab[i][1]
               this.type = ecolesTab[i][4]
               this.description = ecolesTab[i][2]
-              this.complementEcole = ecolesTab[i][4]
+              this.complementEcole = ecolesTab[i][3]
 
               this.registrationEcole(ecolesTab[i][5],ecolesTab[i][6],ecolesTab[i][8],ecolesTab[i][7],ecolesTab[i][9],ecolesTab[i][1],ecolesTab[i][4],ecolesTab[i][2],ecolesTab[i][4])
             }

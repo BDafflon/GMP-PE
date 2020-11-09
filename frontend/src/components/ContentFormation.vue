@@ -254,7 +254,7 @@
         </div>
       </div>
     </div>
-    <Modal></Modal>
+    <Modal v-on:refreche="fetchData()"></Modal>
     <!-- /.container-fluid -->
   </div>
   <!-- End of Main Content -->
@@ -297,10 +297,16 @@
         'logged',
         'user'
       ]),
-      formations: function(){
+      
+      formations: {
+        get : function(){
 
 
         return this.filtreFormation();
+      },
+      set: function(value){
+        this.allFormation=value
+      }
       }
 
     },
@@ -339,7 +345,7 @@
         console.debug("formation "+this.formation)
       },
       fetchData () {
-
+        console.debug("fetch")
         axios({
             method: 'get',
             url: 'formations/',
@@ -363,6 +369,7 @@
       })
       .catch(error => {
         console.debug(error)
+        
       })
 
 

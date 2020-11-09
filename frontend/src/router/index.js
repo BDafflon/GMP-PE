@@ -7,6 +7,7 @@ import Ecole from '../views/Ecole.vue'
 import Logout from '../views/Logout.vue'
 import Formation from '../views/Formation.vue'
 import Candidature from '../views/Candidature.vue'
+import Etuidants from '../views/Etuidants.vue'
 
 Vue.use(VueRouter)
 
@@ -24,6 +25,15 @@ const routes = [
     path: '/formation/:id?',
     name: 'Formation',
     component: Formation,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false
+    }
+  },
+  {
+    path: '/etudiants/:id?',
+    name: 'Etuidants',
+    component: Etuidants,
     meta: {
       requiresAuth: true,
       requiresAdmin: false

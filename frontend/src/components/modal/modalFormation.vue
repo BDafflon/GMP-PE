@@ -62,13 +62,13 @@
 
 
           </div>
-          <div class="col-sm-5">
+          <div class="col-sm-5 mt-3">
                 <vue-single-select class="d-inline"
                   name="maybe"
                   placeholder="Rechercher un responsable"
                   v-model="selectedResp"
                   :options="responsables"
-                  option-label="nom_responsable"
+                  option-label="full"
                   :required="true"
                 ></vue-single-select> 
                 <a @click="addResp = !addResp" class="d-inline ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm">
@@ -163,7 +163,7 @@
        
     },
     methods: {
-      sendFile(){
+      sendFileFormation(){
           const reader = new FileReader();
            
 
@@ -171,38 +171,98 @@
          
           reader.onload = evt => {
           let text = evt.target.result;
-          var ecolesTab = []
+          var formations = []
 
-          var ecolesCSV = text.split(/\r?\n/);
-           ecolesCSV.forEach(element => {
-             var ecole = element.split(';')
-             ecolesTab.push(ecole)
+          var formationsCSV = text.split(/\r?\n/);
+           formationsCSV.forEach(element => {
+             var formation = element.split(';')
+             formations.push(formation)
            });
 
           //empty string at end?
-          for (var i=1;i<ecolesTab.length;i++){
-            if(ecolesTab[i].length == 10){
-              
-              this.numRue = ecolesTab[i][5]
-              this.nomRue = ecolesTab[i][6]
-              this.codePostal = ecolesTab[i][7]
-              this.ville = ecolesTab[i][8]
-              this.pays = ecolesTab[i][9]
-
-              
-              
-               
-              this.nomEcole = ecolesTab[i][1]
-              this.type = ecolesTab[i][4]
-              this.description = ecolesTab[i][2]
-              this.complementEcole = ecolesTab[i][4]
-
-              this.registrationFormation()
+          for (var i=1;i<formations.length;i++){
+             
+            if(formations[i].length >=12){
+              console.debug(formations[i])
+              this.formationFullSubmit(formations[i])
+             
             }
             
           }
         }
           
+      },
+      formationFullSubmit(dataF){
+        axios({
+            method: 'post',
+            url: 'responsable/registration',
+            data: {
+
+              nom_responsable : dataF[8],
+              prenom_responsable : dataF[9],
+              mail_responsable :  dataF[10],
+              telephone_responsable :  dataF[11],
+
+
+            },
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+          })
+          .then(response => {
+
+              console.debug(response.data)
+              
+              axios({
+                      method: 'post',
+                      url: 'formation/registration',
+                      data: {
+
+                        specialite : dataF[2],
+                        description : dataF[5],
+                        site_web_url : dataF[3],
+                        brochure_url : dataF[4],
+                        alternance : dataF[6],
+                        type_formation : 0,
+                        niveau :dataF[7],
+    
+                        id_responsable : response.data.id_responsable,
+                        id_ecole : dataF[1]
+
+
+                      },
+                      auth: {
+                        username: this.user.mail,
+                        password: this.user.pwd
+                      }
+                    })
+                    .then(response => {
+
+                        console.debug(response)
+                        
+                        this.fetchData()
+                        this.$bvModal.hide('modal-ajoutformation')
+                        this.$emit('refreche')
+                        
+
+                    })
+                    .catch(error => {
+                      console.debug(error)
+                      this.fetchData()
+                      this.$bvModal.hide('modal-ajoutformation')
+                        this.$emit('refreche')
+                    })
+
+          })
+          .catch(error => {
+            console.debug(error)
+            this.fetchData()
+            this.$bvModal.hide('modal-ajoutformation')
+                        this.$emit('refreche')
+          })
+
+
       },
       formationSubmit(){
           axios({
@@ -216,6 +276,7 @@
                         brochure_url : this.brochure,
                         alternance : this.alternance,
                         type_formation : 0,
+                        niveau : this.niveau,
     
                         id_responsable : this.selectedResp.id_responsable,
                         id_ecole : this.selectedEcole.id_ecole
@@ -232,7 +293,8 @@
                         console.debug(response)
                         
                         this.fetchData()
-                        
+                        this.$bvModal.hide('modal-ajoutformation')
+                        this.$emit('refreche')
 
 
 
@@ -268,10 +330,6 @@
               console.debug(response)
               
               this.fetchData()
-               
-
-
-
 
           })
           .catch(error => {
@@ -342,7 +400,14 @@
             }
         })
       .then(response => {
-        this.responsables = response.data
+        this.responsables=[]
+        response.data.forEach(element => {
+          var resp = element
+          resp['full'] = element.nom_responsable+" "+element.prenom_responsable
+          this.responsables.push(resp)
+        });
+        
+
         
 
 

@@ -44,7 +44,7 @@
                   <span>Les candidatures</span></a>
               </li>
               <li class="nav-item active">
-                <a class="nav-link" href="/etuidants">
+                <a class="nav-link" href="/etudiants">
                   <i class="fas fa-user-cog mr-2"></i>
                   <span>Les étudiants</span></a>
               </li>

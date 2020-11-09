@@ -15,11 +15,43 @@
       </div>
 
       <!-- Content Row -->
-      <div v-if="etudiantSelected != null" class="row">
+      <div class="row mb-3" v-if="etudiantSelected !== null">
+        <div class="col-md-6 text-left">
+          <div>
+            <b-card
+              :title="etudiantSelected.nom"
+              :sub-title="etudiantSelected.prenom"
+            >
+              
+              
 
+               
+
+               
+
+              <a
+                v-on:click="trash()"
+                class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                ><i class="fas fa-trash-alt"></i
+              ></a>
+            </b-card>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <b-card no-body class="full-width">
+            <b-tabs card>
+              <b-tab title="Candidature" active>
+                 
+              </b-tab>
+              
+            </b-tabs>
+          </b-card>
+        </div>
       </div>
       <!-- Content Row -->
-
+      
+      
+    
       <!-- Content Row -->
       <div class="row">
         <!-- Content Column -->
@@ -37,15 +69,15 @@
 
                     <div v-if="user.rank==0" class="row align-items-center">
                       <div class="col-sm-2">
-                        {{item.nom_etudiant.nom | capitalize}}
-                        {{item.nom_etudiant.prenom | firstLetter}}.
+                        {{item.nom | capitalize}}
+                        {{item.prenom | firstLetter}}.
                       </div>
                       <div class="col-sm-7">
-                        {{item.ecole.nom}} - {{item.formation.nom}}
+                        
                       </div>
                       <div class="col-sm-3">
                         <a
-                          v-if="item.ap != 0"
+                           
                           class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
                         >
                           <i class="fas fa-envelope fa-fw"></i>
@@ -103,7 +135,7 @@
                   placeholder="Nom d'etudiant"
                   v-model="etudiantSelected"
                   :options="allEtudiants"
-                  option-label="specialite"
+                  option-label="nom"
                 ></vue-single-select>
               </p>
               <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3"  >Exporter</a >
@@ -184,7 +216,7 @@
       .then(response => {
 
          this.allEtudiants=response.data
-         console.debug(this.allFormations)
+         console.debug(this.allEtudiants)
 
 
       })
@@ -266,4 +298,5 @@
 
   margin: 0 auto 2em auto;
 }
+
 </style>

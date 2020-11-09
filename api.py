@@ -263,7 +263,8 @@ class Candidature(db.Model):
             'deadline_dossier': self.deadline_dossier,
             'validationPE': self.validationPE,
             'id_formation': self.id_formation,
-            'voeux': self.voeux
+            'voeux': self.voeux,
+            'formation-c':Formation.query.filter_by(id_formation=self.id_formation).all()
         }
 
 
@@ -292,7 +293,8 @@ class Formation(db.Model):
             'type_formation': self.type_formation,
             'id_ecole': self.id_ecole,
             'niveau':self.niveau,
-            'id_responsable': self.id_responsable
+            'id_responsable': self.id_responsable,
+            'ecole-f':Ecole.query.filter_by(id_ecole=self.id_ecole).all()
         }
 
 
@@ -387,7 +389,7 @@ def avis_registration():
     AvisP = AvisProf(prof=prof)
     AvisP.id_candidature=id_candidature
     AvisP.avis=avis
-    avisP.matiere = matiere
+    AvisP.matiere = matiere
     db.session.add(AvisP)
     db.session.commit()
 
@@ -497,7 +499,16 @@ def get_users():
     users = User.query.order_by(User.nom).all()
     data = []
     for u in users:
-        data.append(u.serialize())
+        can = Candidature.query.filter_by(id_etudiant=u.id).all()
+        d=[]
+        us = u.serialize()
+        for c in can:
+            d.append(c.serialize())
+        us["candidatures"]=d
+        print("uers :")
+        print(us)
+        data.append(us)
+
     if not users:
         return jsonify({})
     print(g.user.serialize())

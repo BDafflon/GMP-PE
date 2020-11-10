@@ -264,7 +264,7 @@ class Candidature(db.Model):
             'validationPE': self.validationPE,
             'id_formation': self.id_formation,
             'voeux': self.voeux,
-            'formation-c':Formation.query.filter_by(id_formation=self.id_formation).all()
+            'formation-c':[]
         }
 
 
@@ -294,7 +294,7 @@ class Formation(db.Model):
             'id_ecole': self.id_ecole,
             'niveau':self.niveau,
             'id_responsable': self.id_responsable,
-            'ecole-f':Ecole.query.filter_by(id_ecole=self.id_ecole).all()
+            'ecole-f':[]
         }
 
 
@@ -491,6 +491,20 @@ def user_registration():
     return (jsonify({'nom': user.nom}), 201,
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
+
+@app.route('/api/userd/<int:id>', methods=['DELETE'])
+@auth.login_required
+def delete_user(id):
+    record_obj = db.session.query(User).filter(User.id == id).first()
+    if record_obj is not None:
+        if g.user.rank == Rank.ADMIN.value:
+            db.session.delete(record_obj)
+            db.session.commit()
+            return jsonify({"message": "OK"})
+        else:
+            abort(make_response(jsonify(errors='Forbiden'), 403))
+
+    abort(make_response(jsonify(errors='no candidature found'), 403))
 
 # Check
 @app.route('/api/users/', methods=['GET'])
@@ -1656,5 +1670,5 @@ if __name__ == '__main__':
         db.session.add(u)
         db.session.commit()
 
-    app.run(host='0.0.0.0',port=5050)
+    app.run(host='0.0.0.0',port=5000)
 

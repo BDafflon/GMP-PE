@@ -24,31 +24,31 @@ def getUser(id):
 
 def getUsers():
 
-    username = "admin"
+    username = "admin@admin.fr"
     password = "azerty"
 
-    url = 'http://127.0.0.1:5000/api/users'
+    url = 'http://dafflon.fr:5050/api/users/'
 
     x = requests.get(url, auth=(username, password))
 
     print(x.json())
 
 def addRandomUser():
-    nom = get_random_string(10)
-    prenom = get_random_string(10)
+    nom = "Etudiante"
+    prenom = "Ficitive"
     numero = random.randint(1000,10000)
     password = "azerty"
-    groupeTD = ""
-    mail = get_random_string(10)+"@admin.fr"
+    groupeTD = "2B05"
+    mail = "etudiante.fictive@gmp.fr"
 
-    username = "admin"
+    username = "admin@admin.fr"
     password = "azerty"
 
-    url = 'http://127.0.0.1:5000/api/user/registration'
+    url = 'http://dafflon.fr:5050/api/user/registration'
     myobj = {'nom': nom,
              'prenom': prenom,
              'numero':numero,
-             'password':password,
+             'password':"salade",
              'groupeTD':groupeTD,
              'mail':mail
              }
@@ -187,8 +187,13 @@ def getToken():
 #getUser(4)
 #updateRandomUser(2)
 #addRandomforuminfo()
-addRandomAdress()
+#addRandomAdress()
 
 #getforuminfos(3)
 #updateRandomforuminfo(1)
 #addRandomtypeecole()
+
+for i in range(0,50):
+    nom = get_random_string(6)
+    prenom =get_random_string(6)
+    print(str(i)+";"+nom+";"+prenom+";"+prenom+nom+"@gmp.fr"+";"+"azerty;0;")

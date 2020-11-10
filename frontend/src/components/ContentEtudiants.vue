@@ -15,12 +15,12 @@
       </div>
 
       <!-- Content Row -->
-      <div class="row mb-3" v-if="etudiantSelected !== null">
+      <div class="row mb-3" v-if="etudiant !== null">
         <div class="col-md-6 text-left">
           <div>
             <b-card
-              :title="etudiantSelected.nom"
-              :sub-title="etudiantSelected.prenom"
+              :title="etudiant.nom"
+              :sub-title="etudiant.prenom"
             >
               
               
@@ -62,7 +62,7 @@
               <h6 class="m-0 font-weight-bold text-primary">Les étudiants</h6>
             </div>
             <div class="card-body">
-              <div class="candidature-area">
+              <div class="area">
                 <ul class="list-group">
                   <li class="list-group-item" v-for="item in allEtudiants" :key="item.id" >
                     
@@ -73,7 +73,7 @@
                         {{item.prenom | firstLetter}}.
                       </div>
                       <div class="col-sm-7">
-                        
+                        {{item.mail}} - {{item.groupeTD}}
                       </div>
                       <div class="col-sm-3">
                         <a
@@ -89,7 +89,7 @@
                         </a>
 
                         <a
-                          v-on:click="setCandidature(item.id_candidature)"
+                          v-on:click="setEtudiant(item)"
                           class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
                           ><i class="fas fa-search"></i
                         ></a>
@@ -139,8 +139,8 @@
                 ></vue-single-select>
               </p>
               <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3"  >Exporter</a >
-              <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3"  >Ajouter</a >
-              <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3"  >Importer</a >
+              <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3" v-b-modal.modal-ajoutetuidant >Ajouter</a >
+               
             </div>
           </div>
           <!-- Illustrations -->
@@ -154,7 +154,9 @@
     </div>
 
     <!-- /.container-fluid -->
+    <Modal v-on:refreche="fetchData()">></Modal>
   </div>
+  
   <!-- End of Main Content -->
 </template>
 
@@ -162,12 +164,15 @@
   import { mapState, mapActions } from 'vuex';
   import NavbarC from './NavBarCustom.vue';
   import axios from 'axios';
+  import Modal from './modal/modalEtudiant.vue'
+
 
 
   export default {
     name:"Content",
     components: {
-    NavbarC
+    NavbarC,
+    Modal
     },
     data() {
       return {
@@ -177,7 +182,9 @@
         allEtudiants:[],
         hasMessage:null,
         etudiantSelected:null,
-        hasCandidature:null
+        hasCandidature:null,
+        etudiant:null,
+        candidatures:null
 
       }
     },
@@ -201,8 +208,47 @@
       ...mapActions([
 
       ]),
-      
-      
+      setEtudiant (etu){
+          this.etudiant = etu
+          axios({
+            method: 'get',
+            url: 'candidatures_user/'+etu.id,
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+        })
+      .then(response => {
+
+         this.candidatures=response.data
+         console.debug(this.allEtudiants)
+
+
+      })
+      .catch(error => {
+        console.debug(error)
+      })
+
+      },
+      trash(etu){
+          if(confirm('Etes vous sur de vouloir supprimer cet etuidant (definitif) ?')){
+                    axios({
+                      method: 'delete',
+                      url: 'userd/'+etu.id,
+                      auth: {
+                        username: this.user.mail,
+                        password: this.user.pwd
+                      }
+                  })
+                .then(response => {
+                  console.debug(response.data)
+                    this.fetchData()
+                })
+                .catch(error => {
+                  console.debug(error)
+                })
+                  }
+      },
       fetchData () {
          
       axios({
@@ -289,14 +335,6 @@
 @import "node_modules/bootstrap/scss/bootstrap.scss";
 @import "../assets/sb-admin-2.min.css";
 
-.candidature-area {
-  /*   border: 1px solid #ccc; */
-  background: white;
-  max-height: 30vh;
-  padding: 1em;
-  overflow: auto;
-
-  margin: 0 auto 2em auto;
-}
+ 
 
 </style>

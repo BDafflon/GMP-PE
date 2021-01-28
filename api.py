@@ -33,6 +33,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 CORS(app, origins="*", allow_headers="*")
+#cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # extensions
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
@@ -150,7 +151,7 @@ class TypeEcole(db.Model):
     def serialize(self):
         """Return object data in easily serializable format"""
         return {
-            'id_type_ecole': self.id_type_ecole,
+            'id_type_ecole': 1,
             'nom_type': self.nom_type
         }
 
@@ -190,7 +191,8 @@ def get_formation_by_ecole(id):
 def get_type_local(id):
     type = TypeEcole.query.filter_by(id_type_ecole=id).first()
     if type is None:
-        return jsonify({})
+        return 'none'
+    print('----------------',id)
     return type.nom_type
 
 
@@ -362,8 +364,8 @@ def verify_password(username_or_token, password):
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(600)
-    return jsonify({'user': g.user.serialize(), 'token': token.decode('ascii'), 'duration': 600})
-
+    response = jsonify({'user': g.user.serialize(), 'token': 'token', 'duration': 600})
+    return response
 
 
 # ----------------------------avis
@@ -815,8 +817,11 @@ def ecole_registration():
     type = TypeEcole.query.filter_by(id_type_ecole=id_type_ecole).first()
     if ecole is not None:
         abort(make_response(jsonify(errors='Existing'), 403))
-    if type is None or adresse is None:
+    if adresse is None:
         abort(make_response(jsonify(errors='missing type / missing adress'), 403))
+
+    if type is None :
+        id_type_ecole=0
 
     ecole = Ecole(nom_ecole=nom_ecole)
     ecole.id_type_ecole = int(id_type_ecole)
@@ -835,10 +840,10 @@ def get_ecoles():
     info = Ecole.query.order_by(Ecole.nom_ecole).all()
     data = []
     for u in info:
+        print(u.serialize(),'\n\n')
         data.append(u.serialize())
     if not info:
         return jsonify({})
-    print(g.user.serialize())
 
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
         abort(403)
@@ -1670,5 +1675,38 @@ if __name__ == '__main__':
         db.session.add(u)
         db.session.commit()
 
-    app.run(host='0.0.0.0',port=5000)
+        u = User(mail='martin.rousselle@pe-gmp.fr')
+        u.hash_password('azerty')
+        u.rank=2
+        db.session.add(u)
+        db.session.commit()
+        
+        u = User(mail="oriane@pe-gmp.fr")
+        u.hash_password("azerty")
+        u.rank=0
+        db.session.add(u)
+        db.session.commit()
+        
+        u = User(mail="sonia@admin.fr")
+        u.hash_password("azerty")
+        u.rank=0
+        db.session.add(u)
+        db.session.commit()
+
+        type = TypeEcole(nom_type='Publique')
+        db.session.add(type)
+        db.session.commit()
+
+        type = TypeEcole(nom_type='Privée')
+        db.session.add(type)
+        db.session.commit()
+
+        ecole = Ecole(nom_ecole='ITII')
+        ecole.id_type_ecole = 1
+        ecole.id_adresse_ecole = 1
+        ecole.description='bla'
+        ecole.complement_ecole='site'
+        db.session.add(ecole)
+        db.session.commit()
+    app.run(debug=True,host='0.0.0.0',port=8500)
 

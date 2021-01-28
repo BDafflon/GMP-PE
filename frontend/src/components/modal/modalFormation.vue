@@ -40,6 +40,7 @@
                   <div class="form-row mt-4">
                     <div class="col">
                       <select v-model="niveau" class="form-control" id="exampleFormControlSelect1" placeholder="Niveau" required>
+                        <option disabled>Niveau</option>
                         <option value="0">Bac +2</option>
                         <option value="1">Bac +3</option>
                         <option value="2">Bac +5</option>
@@ -48,7 +49,15 @@
                     </div>
                      <div class="col">
                       <select v-model="alternance" class="form-control" id="exampleFormControlSelect1" placeholder="Alternance" required>
+                        <option disabled>Alternance</option>
+                        <option value="0">Oui</option>
+                        <option value="1">Non</option>
                          
+                      </select>
+                    </div>
+                    <div class="col">
+                      <select v-model="typeFormation" class="form-control" id="exampleFormControlSelect1" placeholder="Alternance" required>
+                        <option disabled selected>Type</option>
                         <option value="0">Oui</option>
                         <option value="1">Non</option>
                          
@@ -141,7 +150,8 @@
         description:null,
         niveau:null,
         alternance:null,
-        siteweb:null
+        siteweb:null,
+        typeFormation:null
 
 
 

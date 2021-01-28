@@ -40,7 +40,7 @@
                   <div class="form-row mt-4">
                     <div class="col">
                       <select v-model="niveau" class="form-control" id="exampleFormControlSelect1" placeholder="Niveau" required>
-                        <option disabled>Niveau</option>
+                        <option value="" selected disabled>Niveau</option>
                         <option value="0">Bac +2</option>
                         <option value="1">Bac +3</option>
                         <option value="2">Bac +5</option>
@@ -49,18 +49,18 @@
                     </div>
                      <div class="col">
                       <select v-model="alternance" class="form-control" id="exampleFormControlSelect1" placeholder="Alternance" required>
-                        <option disabled>Alternance</option>
+                        <option value="-1" selected disabled>Alternance</option>
                         <option value="0">Oui</option>
                         <option value="1">Non</option>
                          
                       </select>
                     </div>
                     <div class="col">
-                      <select v-model="typeFormation" class="form-control" id="exampleFormControlSelect1" placeholder="Alternance" required>
-                        <option disabled selected>Type</option>
-                        <option value="0">Oui</option>
-                        <option value="1">Non</option>
-                         
+        
+                      <select  class="form-control" v-model="typeFormation">
+                        <option value="-1" selected disabled>Type</option>
+                        <option value="0">Publique</option>
+                        <option value="1">Privée</option>
                       </select>
                     </div>
                     <div class="col">
@@ -148,10 +148,10 @@
         specialite:null,
         brochure:null,
         description:null,
-        niveau:null,
-        alternance:null,
+        niveau:"",
+        alternance:-1,
         siteweb:null,
-        typeFormation:null
+        typeFormation:-1
 
 
 

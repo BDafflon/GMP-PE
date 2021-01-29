@@ -41,10 +41,10 @@
                     <div class="col">
                       <select v-model="niveau" class="form-control" id="exampleFormControlSelect1" placeholder="Niveau" required>
                         <option value="" selected disabled>Niveau</option>
-                        <option value="0">Bac +2</option>
-                        <option value="1">Bac +3</option>
-                        <option value="2">Bac +5</option>
-                        <option value="3">Bac +8</option>
+                        <option value="2">Bac +2</option>
+                        <option value="3">Bac +3</option>
+                        <option value="5">Bac +5</option>
+                        <option value="8">Bac +8</option>
                       </select>
                     </div>
                      <div class="col">

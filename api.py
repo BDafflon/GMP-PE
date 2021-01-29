@@ -1179,10 +1179,7 @@ def down_candidatures(id):
 @app.route('/api/candidatures_user/<int:id>', methods=['GET'])
 @auth.login_required
 def get_candidatures_user(id):
-    if g.user.rank == Rank.ADMIN.value :
-        info = Candidature.query.order_by(Candidature.voeux).all()
-    else:
-        info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
+    info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
     data = []
     for u in info:
         us = u.serialize()

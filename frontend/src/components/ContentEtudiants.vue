@@ -41,7 +41,22 @@
           <b-card no-body class="full-width">
             <b-tabs card>
               <b-tab title="Candidature" active>
-                 
+                  <ul class="list-group">
+                  <li
+                    v-for="item in candidatures"
+                    :key="item.id_candidature"
+                    class="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    {{ item.ecole.nom }} - {{item.formation.nom}}
+
+                    <b-button
+                      type="button"
+                      variant="primary"
+                      :to="'Formation/'+item.id_formation"
+                      ><i class="fas fa-search"></i
+                    ></b-button>
+                  </li>
+                </ul>
               </b-tab>
               
             </b-tabs>
@@ -210,6 +225,7 @@
       ]),
       setEtudiant (etu){
           this.etudiant = etu
+          this.candidatures=null
           axios({
             method: 'get',
             url: 'candidatures_user/'+etu.id,
@@ -221,8 +237,7 @@
       .then(response => {
 
          this.candidatures=response.data
-         console.debug(this.allEtudiants)
-
+         
 
       })
       .catch(error => {

@@ -25,8 +25,9 @@
                   <div class="form-row mt-4">
                     <div class="col">
                       <select v-model="type" class="form-control" id="exampleFormControlSelect1" placeholder="Type" required>
-                        <option value="1">Publique</option>
-                        <option value="0">Privée</option>
+                      <option value="-1" selected disabled>Type</option>
+                        <option value="0">Publique</option>
+                        <option value="1">Privée</option>
                       </select>
                     </div>
                     <div class="col">
@@ -107,7 +108,7 @@
         nomEcole : null,
         complementEcole : null,
         description : null,
-        type : null,
+        type : -1,
         pays : null,
         ville : null,
         codePostal : null,

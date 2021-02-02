@@ -72,7 +72,7 @@
                   </li>
                 </ul>
               </b-tab>
-              <b-tab title="Statistique">
+              <b-tab disabled title="Statistique">
                 <div class="text-left">
                   <b-card sub-title="2019-2020">
                     <b-card-text

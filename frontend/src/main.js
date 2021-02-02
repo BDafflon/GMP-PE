@@ -17,7 +17,7 @@ Vue.use(BootstrapVue, {bsidebar:{width:'200px'}})
  
 Vue.config.productionTip = false
 
-Axios.defaults.baseURL = 'http://localhost:8500/api/'
+Axios.defaults.baseURL = 'http://dafflon.fr:18500/api/'
 
 
 

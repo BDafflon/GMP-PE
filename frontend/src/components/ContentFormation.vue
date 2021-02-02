@@ -103,13 +103,14 @@
                     <b-button
                       type="button"
                       variant="primary"
-                      :to="'Formation/'+item.id_formation"
+                      v-on:click="setFormation(item.id_formation)"
+               
                       ><i class="fas fa-search"></i
                     ></b-button>
                   </li>
                 </ul>
               </b-tab>
-              <b-tab title="Forum">
+              <b-tab	disabled title="Forum">
                 <div class="text-left">
                   <b-card>
                     <b-card-text
@@ -131,7 +132,7 @@
                   </b-card>
                 </div>
               </b-tab>
-              <b-tab title="Statistique">
+              <b-tab disabled title="Statistique">
                 <div class="text-left">
                   <b-card sub-title="2019-2020">
                     <b-card-text

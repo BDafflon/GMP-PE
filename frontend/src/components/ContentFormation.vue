@@ -11,11 +11,30 @@
       <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Les Formations</h1>
         <a
-          v-if="formation !== null"
+          v-if="formation !== null && user.rank==2"
           :href="'/candidature/-1/'+formation.id_formation"
-          class="d-none d-sm-inline-block btn btn-lg btn-primary shadow-sm"
+          class="d-none d-sm-inline-block btn  btn-primary shadow-sm"
           ><i class="fas fa-compress-arrows-alt mr-2"></i>Candidater
         </a>
+        <div>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          class="mr-2"
+          v-on:click="exporter()"
+    
+          ><i class="fas fa-download"></i
+        > Exporter</b-button>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          v-on:click="supprimer()"
+    
+          ><i class="fas fa-trash-alt"></i
+        > Supprimer</b-button>
+        </div>
       </div>
 
       <!-- Content Row -->
@@ -312,6 +331,25 @@
 
     },
     methods: {
+      supprimer(){
+        if(confirm('Etes vous sur de vouloir supprimer les formations (definitif) ?')){
+          axios({
+            method: 'delete',
+            url: 'formation/all',
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+        })
+      .then(response => {
+         console.debug(response.data)
+          this.fetchData()
+      })
+      .catch(error => {
+        console.debug(error)
+      })    
+        }
+      },
       filtreFormation(){
         this.f = []
         this.allFormation.forEach(element => {
@@ -358,11 +396,13 @@
       .then(response => {
          console.debug(response.data)
          this.allFormation=response.data
-
+        if (this.allFormation != null)
+          this.allFormation=[]
         this.allFormation.forEach(element => {
             if(!this.ecoleNames.includes(element.nom_ecole))
             this.ecoleNames.push(element.nom_ecole)
         });
+        
 
           this.formations=this.allFormation
          if (this.$route.params.id != null)

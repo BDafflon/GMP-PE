@@ -12,6 +12,25 @@
         <h1 v-if="0==user.rank" class="h3 mb-0 text-gray-800">
           Etudiants
         </h1>
+        <div>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          class="mr-2"
+          v-on:click="exporter()"
+    
+          ><i class="fas fa-download"></i
+        > Exporter</b-button>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          v-on:click="supprimer()"
+    
+          ><i class="fas fa-trash-alt"></i
+        > Supprimer</b-button>
+        </div>
       </div>
 
       <!-- Content Row -->
@@ -244,6 +263,25 @@
         console.debug(error)
       })
 
+      },
+      supprimer(){
+        if(confirm('Etes vous sur de vouloir supprimer les étudiants (definitif) ?')){
+          axios({
+            method: 'delete',
+            url: 'user/all',
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+        })
+      .then(response => {
+         console.debug(response.data)
+          this.fetchData()
+      })
+      .catch(error => {
+        console.debug(error)
+      })    
+        }
       },
       trash(etu){
           if(confirm('Etes vous sur de vouloir supprimer cet etuidant (definitif) ?')){

@@ -8,9 +8,31 @@
     <!-- Begin Page Content -->
     <div class="container-fluid">
       <!-- Page Heading -->
-      <div class="d-sm-flex align-items-center">
-        <h1 class="h3 mb-0 text-gray-800 p-2">Les Ecoles</h1>
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+          Les écoles
+        </h1>
+        <div>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          class="mr-2"
+          v-on:click="exporter()"
+    
+          ><i class="fas fa-download"></i
+        > Exporter</b-button>
+        <b-button
+         v-if="user.rank==0"
+          type="button"
+          variant="primary"
+          v-on:click="supprimer()"
+    
+          ><i class="fas fa-trash-alt"></i
+        > Supprimer</b-button>
+        </div>
       </div>
+      
 
       <!-- Content Row -->
 
@@ -237,8 +259,35 @@
       }
     },
     methods: {
+      supprimer(){
+        if(confirm('Etes vous sur de vouloir supprimer les ecoles (definitif) ?')){
+          axios({
+            method: 'delete',
+            url: 'ecole/all',
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+        })
+      .then(response => {
+         console.debug(response.data)
+          this.allEcole = []
+      })
+      .catch(error => {
+        console.debug(error)
+      })    
+        }
+      }
+      
+      ,
        filtreEcole(){
         var f = []
+        if(this.allEcole == null)
+          this.allEcole = []
+
+        console.debug("-------------")
+        console.debug(this.allEcole)
+        console.debug("-------------")
         this.allEcole.forEach(element => {
         if((element.nom_ecole.includes(this.selectEcole) || this.selectEcole==null) &&
            (this.selectedVille==null || element.adresse.ville.includes(this.selectedVille) ) &&
@@ -284,6 +333,9 @@
       .then(response => {
          console.debug(response.data)
          this.allEcole=response.data
+
+         if(this.allEcole==null)
+            this.allEcole=[]
          this.allEcole.forEach(element => {
            if(!this.villes.includes(element.adresse.ville))
               this.villes.push(element.adresse.ville)

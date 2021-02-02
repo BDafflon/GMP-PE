@@ -161,7 +161,7 @@ class Ecole(db.Model):
     id_ecole = db.Column(db.Integer, primary_key=True)
     nom_ecole = db.Column(db.String(128))
     complement_ecole = db.Column(db.String(128))
-    descirption = db.Column(db.String(255))
+    description = db.Column(db.String(255))
     id_type_ecole = db.Column(db.Integer, db.ForeignKey('TypeEcole.id_type_ecole'))
     id_adresse_ecole = db.Column(db.Integer, db.ForeignKey('Adresse.id_adresse'))
     valide = db.Column(db.Boolean)
@@ -173,7 +173,7 @@ class Ecole(db.Model):
             'complement_ecole': self.complement_ecole,
             'id_type_ecole': get_type_local(self.id_type_ecole),
             'adresse': get_adresse_local(self.id_adresse_ecole),
-            'descirption': self.descirption,
+            'description': self.description,
             'formation': get_formation_by_ecole(self.id_ecole)
         }
 
@@ -501,6 +501,16 @@ def users_delete():
         abort(403)
     user = User.query.filter(User.rank== 2).all()
     for f in user:
+        candidatures = Candidature.query.filter(Candidature.id_etudiant==f.id).all()
+        ape = actionPE.query.filter(actionPE.id_etudiant==f.id).all()
+        for ap in ape:
+            db.session.delete(ap)
+        for c in candidatures:
+            avis = AvisProf.query.filter(AvisProf.id_candidature==c.id_candidature).all()
+            for a in avis:
+                db.session.delete(a)
+            db.session.delete(c)
+
         db.session.delete(f)
     db.session.commit()
     return jsonify({'message':'done'})
@@ -907,8 +917,14 @@ def ecole_delete():
     if g.user.rank != Rank.ADMIN.value :
         abort(403)
     ecoles = Ecole.query.order_by(Ecole.id_ecole).all()
-    for f in ecoles:
-        db.session.delete(f)
+    for e in ecoles:
+        formation = Formation.query.filter(Formation.id_ecole==e.id_ecole).all()
+        for f in formation :
+            candidature = Candidature.query.filter(Candidature.id_formation==f.id_formation).all()
+            for c in candidature:
+                db.session.delete(c)
+            db.session.delete(f)
+        db.session.delete(e)
     db.session.commit()
     return jsonify({'message':'done'})
 

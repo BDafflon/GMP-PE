@@ -264,6 +264,20 @@
       })
 
       },
+      exporter(){
+          this.fetchData()
+          let csvContent="data:text/csv;charset=utf-8,id;nom;prenom;mail;pass;td;\n"
+          this.allEtudiants.forEach(element => {
+              console.debug(element)
+              csvContent+=element.id+";"+element.nom+";"+element.prenom+";"+element.mail+";;"+element.groupeTD+";\n"
+          })
+          const data = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", data);
+          link.setAttribute("download", "export.csv");
+          link.click();
+      }
+      ,
       supprimer(){
         if(confirm('Etes vous sur de vouloir supprimer les étudiants (definitif) ?')){
           axios({

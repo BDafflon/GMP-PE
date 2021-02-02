@@ -45,7 +45,7 @@
               :sub-title="ecole.complement_ecole"
             >
               <b-card-text>
-                {{ecole.descirption}}
+                {{ecole.description}}
               </b-card-text>
 
               <b-card-text
@@ -259,6 +259,20 @@
       }
     },
     methods: {
+      exporter(){
+          this.fetchData()
+          let csvContent="data:text/csv;charset=utf-8,id;nom;desc;complement;type;num_rue;nom_rue;cp;ville;pays;\n"
+          this.allEcole.forEach(element => {
+              console.debug(element)
+              csvContent+=element.id_ecole+";"+element.nom_ecole+";"+element.description+";"+element.complement_ecole+";"+element.id_type_ecole+";"+element.adresse.num_rue+";"+element.adresse.nom_rue+";"+element.adresse.cp+";"+element.adresse.ville+";"+element.adresse.pays+";\n"
+              
+          })
+          const data = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", data);
+          link.setAttribute("download", "exportEcole.csv");
+          link.click();
+      },
       supprimer(){
         if(confirm('Etes vous sur de vouloir supprimer les ecoles (definitif) ?')){
           axios({

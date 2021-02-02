@@ -493,6 +493,17 @@ def user_registration():
     return (jsonify({'nom': user.nom}), 201,
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
+@app.route("/api/user/all", methods=["DELETE"])
+@auth.login_required
+def users_delete():
+    print("del user")
+    if g.user.rank != Rank.ADMIN.value :
+        abort(403)
+    user = User.query.filter(User.rank== 2).all()
+    for f in user:
+        db.session.delete(f)
+    db.session.commit()
+    return jsonify({'message':'done'})
 
 @app.route('/api/userd/<int:id>', methods=['DELETE'])
 @auth.login_required
@@ -889,6 +900,17 @@ def update_ecole(id):
     db.session.commit()
     return jsonify(ecole.serialize())
 
+@app.route("/api/ecole/all", methods=["DELETE"])
+@auth.login_required
+def ecole_delete():
+    print("del ecole")
+    if g.user.rank != Rank.ADMIN.value :
+        abort(403)
+    ecoles = Ecole.query.order_by(Ecole.id_ecole).all()
+    for f in ecoles:
+        db.session.delete(f)
+    db.session.commit()
+    return jsonify({'message':'done'})
 
 # ----------------------------ADRESSE
 @app.route('/api/adresse/registration', methods=['POST'])
@@ -1400,6 +1422,17 @@ def update_formation(id):
     db.commit()
     return jsonify(formation.serialize())
 
+@app.route("/api/formation/all", methods=["DELETE"])
+@auth.login_required
+def formation_delete():
+    print("del formation")
+    if g.user.rank != Rank.ADMIN.value :
+        abort(403)
+    formations = Formation.query.order_by(Formation.id_ecole).all()
+    for f in formations:
+        db.session.delete(f)
+    db.session.commit()
+    return jsonify({'message':'done'})
 
 # ----------------------------PROFILRECRUTE
 @app.route('/api/profilerecrute/registratoin', methods=['POST'])

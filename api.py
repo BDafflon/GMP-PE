@@ -1141,7 +1141,17 @@ def get_candidatures():
     info = Candidature.query.order_by(Candidature.id_etudiant).all()
     data = []
     for u in info:
-        data.append(u.serialize())
+        etu = User.query.filter(User.id==u.id_etudiant).first()
+        d = u.serialize()
+        d["etudiant"]=etu.serialize()
+
+        formation = Formation.query.filter(Formation.id_formation==u.id_formation).first()
+        ecole = Ecole.query.filter(Ecole.id_ecole==formation.id_ecole).first()
+        fs = formation.serialize()
+        fs["ecole"]=ecole.serialize()
+
+        d["formation"] = fs
+        data.append(d)
     if not info:
         return jsonify({})
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:

@@ -329,6 +329,7 @@
           console.debug("id "+element.id_ecole+"/"+value)
           if(element.id_ecole == value)
             this.ecole = element
+            window.scrollTo(0,0);
 
         });
 

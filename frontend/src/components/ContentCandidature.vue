@@ -484,6 +484,7 @@
         this.candidatures.forEach(element => {
               if(id == element.id_candidature)
                 this.candidature = element
+                window.scrollTo(0,0);
                 console.debug('+++++++++++FIND Can++++++++++++++++++++')
                if (element.deadline_dossier != null)
                   this.candidature.deadline_dossier = this.timeConverter(this.candidature.deadline_dossier)

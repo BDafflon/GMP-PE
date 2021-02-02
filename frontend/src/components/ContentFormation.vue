@@ -16,7 +16,7 @@
           class="d-none d-sm-inline-block btn  btn-primary shadow-sm"
           ><i class="fas fa-compress-arrows-alt mr-2"></i>Candidater
         </a>
-        <div>
+        <div v-if="user.rank==0">
         <b-button
          v-if="user.rank==0"
           type="button"
@@ -378,6 +378,7 @@
           console.debug("id "+element.id_formation+"/"+value)
           if(element.id_formation == value)
             this.formation = element
+            window.scrollTo(0,0);
 
         });
 
@@ -394,9 +395,9 @@
             }
         })
       .then(response => {
-         console.debug(response.data)
+         console.debug("-----",response.data)
          this.allFormation=response.data
-        if (this.allFormation != null)
+        if (this.allFormation == null)
           this.allFormation=[]
         this.allFormation.forEach(element => {
             if(!this.ecoleNames.includes(element.nom_ecole))

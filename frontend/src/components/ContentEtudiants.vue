@@ -172,7 +172,7 @@
                   option-label="nom"
                 ></vue-single-select>
               </p>
-              <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3"  >Exporter</a >
+              
               <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3" v-b-modal.modal-ajoutetuidant >Ajouter</a >
                
             </div>
@@ -256,6 +256,7 @@
       .then(response => {
 
          this.candidatures=response.data
+         window.scrollTo(0,0);
          
 
       })

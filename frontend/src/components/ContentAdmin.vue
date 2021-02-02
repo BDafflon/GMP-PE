@@ -30,17 +30,17 @@
             <div class="card-body">
               <div class="candidature-area">
                 <ul class="list-group">
-                  {{allCandidatures}}
+                  
                   <li class="list-group-item" v-for="item in allCandidatures" :key="item.id_candidature" >
                     
 
                     <div v-if="user.rank==0" class="row align-items-center">
                       <div class="col-sm-2">
-                        {{item.nom_etudiant.nom | capitalize}}
-                        {{item.nom_etudiant.prenom | firstLetter}}.
+                        {{item.etudiant.nom | capitalize}}
+                        {{item.etudiant.prenom | firstLetter}}.
                       </div>
                       <div class="col-sm-7">
-                        {{item.ecole.nom}} - {{item.formation.nom}}
+                        {{item.formation.ecole.nom_ecole}} - {{item.formation.specialite}}
                       </div>
                       <div class="col-sm-3">
                         <a
@@ -425,7 +425,7 @@
       .then(response => {
 
          this.allCandidatures=response.data
-
+        console.debug("candidature ",this.allCandidatures)
 
       })
       .catch(error => {

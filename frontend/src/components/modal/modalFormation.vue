@@ -285,7 +285,7 @@
                         site_web_url : this.siteweb,
                         brochure_url : this.brochure,
                         alternance : this.alternance,
-                        type_formation : 0,
+                        type_formation : this.typeFormation,
                         niveau : this.niveau,
     
                         id_responsable : this.selectedResp.id_responsable,

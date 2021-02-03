@@ -18,13 +18,20 @@
       </div>
 
       <!-- Content Row -->
-      <div class="row mb-3" v-if="candidature !== null">
+      <div class="row mb-3" v-if="candidature != null">
         <div class="col-md-6 text-left">
           <div>
             <b-card
-              :title="candidature.ecole.nom"
-              :sub-title="candidature.formation.nom"
+              :title="candidature.formation.ecole.nom_ecole"
+              :sub-title="candidature.formation.specialite"
             >
+            <b-card-text v-if="user.rank==0"
+                >Nom :
+                <span
+                  class="font-italic"
+                  >{{candidature.etudiant.nom}} {{candidature.etudiant.prenom}}</span
+                ></b-card-text
+              >
               <b-card-text v-if="!edit"
                 >DeadLine :
                 <span
@@ -192,6 +199,7 @@
                   v-for="item in candidatures"
                   :key="item.id_candidature"
                 >
+              
                   <div v-if="user.rank==2" class="row align-items-center">
                     <div class="col-sm-2">
                       <a
@@ -206,11 +214,11 @@
                       ></a>
                     </div>
                     <div class="col-sm-7">
-                      {{item.ecole.nom}} - {{item.formation.nom}}
+                      {{item.formation.ecole.nom_ecole}} - {{item.formation.specialite}}
                     </div>
                     <div class="col-sm-3">
                       <a
-                        v-if="item.ap != 0"
+                         
                         class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
                       >
                         <i class="fas fa-envelope fa-fw"></i>
@@ -236,23 +244,20 @@
 
                   <div v-if="user.rank==0" class="row align-items-center">
                     <div class="col-sm-2">
-                      {{item.nom_etudiant.nom | capitalize}}
-                      {{item.nom_etudiant.prenom | firstLetter}}.
+                      {{item.etudiant.nom | capitalize}}
+                      {{item.etudiant.prenom | firstLetter}}. - {{item.etudiant.groupeTD}}
                     </div>
                     <div class="col-sm-7">
-                      {{item.ecole.nom}} - {{item.formation.nom}}
+                      {{item.formation.ecole.nom_ecole}} - {{item.formation.specialite}} - {{item.formation.ecole.adresse.ville}}
                     </div>
                     <div class="col-sm-3">
                       <a
-                        v-if="item.ap != 0"
+                        
                         class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
                       >
                         <i class="fas fa-envelope fa-fw"></i>
                         <!-- Counter - Messages -->
-                        <span
-                          class="badge badge-danger badge-counter"
-                          >{{item.ap}}</span
-                        >
+                         
                       </a>
 
                       <a
@@ -275,8 +280,35 @@
 
         <div class="col-md-4 mb-4">
           <!-- Illustrations -->
-          <CandidatureRapide></CandidatureRapide>
-
+          <CandidatureRapide v-if="user.rank==2"></CandidatureRapide>
+          
+          <div v-if="user.rank==0" class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">
+                Filtre Etuidants
+              </h6>
+            </div>
+            <div class="card-body">
+              <p class="d-inline">
+                <vue-single-select
+                  name="maybe"
+                  placeholder="Nom d'etudiant"
+                  v-model="etudiantSelected"
+                  :options="allEtudiants"
+                ></vue-single-select>
+                <vue-single-select
+                  name="maybe"
+                  placeholder="GroupeTD"
+                  v-model="groupeTDSelected"
+                 :options="allgroupeTD"
+                ></vue-single-select>
+              </p>
+              
+              <a class="d-none text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-3" v-b-modal.modal-ajoutetuidant >Ajouter</a >
+               
+            </div>
+          </div>
+           
           <!-- Approach -->
         </div>
       </div>
@@ -292,6 +324,7 @@
   import axios from 'axios';
   import CandidatureRapide from './candidatureRapide.vue';
   import ChatComponent from './ChatComponent.vue'
+ 
 
   export default {
     name:"Content",
@@ -305,10 +338,13 @@
         email: '',
         password: '',
         candidature:null,
+        allCandidatures:[],
         candidatures:[],
         firstD:Date.now(),
         allecoles:[],
         allFormation:[],
+        allEtudiants:[],
+        allgroupeTD:[],
         ecole:null,
         formations:[],
         formation:null,
@@ -316,6 +352,8 @@
         prof:null,
         matiere:null,
         avis:null,
+        
+        groupeTDSelected:null
       }
     },
     created () {
@@ -369,11 +407,32 @@
         'logged',
         'user'
       ]),
+      etudiantSelected : {
+          
+          set: function(val){
+            console.debug(val)
+            if (val == null)
+              this.candidatures=this.allCandidatures
+            else {
+              this.candidatures=[]
+              this.allCandidatures.forEach(element => {
+                if(element.etudiant.nom==val){
+                  this.candidatures.push(element)
+                }
+              });
+            }
+          },
+          get:function(){
+            return "null"
+          }
+          
+      },
       ecoles: function(){
 
 
         return this.filtreEcole();
-      },
+      }, 
+       
       ecoleSelected: {
     // getter
         get: function () {
@@ -547,9 +606,12 @@
       },
 
       fetchDataCandidature(){
+        let url='candidatures_user/'+this.user.id
+        if(this.user.rank==0)
+          url='candidatures/'
         axios({
               method: 'get',
-              url: 'candidatures_user/'+this.user.id,
+              url: url,
               auth: {
                 username: this.user.mail,
                 password: this.user.pwd
@@ -558,18 +620,27 @@
         .then(response => {
           console.debug('------------------------------------')
           console.debug(response.data)
-          this.candidatures = response.data
+          this.allCandidatures = response.data
+          this.candidatures=this.allCandidatures
+          this.allEtudiants=[]
+          this.allgroupeTD=[]
 
             console.debug('+++++++++++++++++++++++++++++++')
             this.candidatures.forEach(element => {
+              console.debug(element.etudiant.nom)
+              if(!this.allEtudiants.includes(element.etudiant.nom))
+                this.allEtudiants.push(element.etudiant.nom)
+              if(!this.allgroupeTD.includes(element.etudiant.groupeTD))
+                this.allgroupeTD.push(element.etudiant.groupeTD)
 
-              if(this.$route.params.idC == element.id_candidature || this.candidature.id_candidature == element.id_candidature )
+              if(this.$route.params.idC == element.id_candidature || this.candidature!=null && this.candidature.id_candidature == element.id_candidature ){
                 console.debug('!!!!!!!!!!!!!!!!!!!!!')
                 this.candidature = element
                 if (element.deadline_dossier != null)
                   this.candidature.deadline_dossier = this.timeConverter(element.deadline_dossier)
                 if (element.date_candidature != null)
                   this.candidature.date_candidature = this.timeConverter(element.date_candidature)
+              }
             });
 
         })

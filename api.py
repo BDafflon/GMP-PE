@@ -1227,32 +1227,20 @@ def down_candidatures(id):
 @app.route('/api/candidatures_user/<int:id>', methods=['GET'])
 @auth.login_required
 def get_candidatures_user(id):
-    info = Candidature.query.filter_by(id_etudiant=id).order_by(Candidature.voeux).all()
+    info = Candidature.query.filter(Candidature.id_etudiant==id).all()
     data = []
     for u in info:
-        us = u.serialize()
-        if u.id_formation is not None:
-            f = Formation.query.filter_by(id_formation=u.id_formation).first()
-            us["formation"] = {'id': u.id_formation, 'nom': f.specialite}
-            if f.id_ecole is not None:
-                e = Ecole.query.filter_by(id_ecole=f.id_ecole).first()
+        etu = User.query.filter(User.id == u.id_etudiant).first()
+        d = u.serialize()
+        d["etudiant"] = etu.serialize()
 
-            avis = AvisProf.query.filter_by(id_candidature=u.id_candidature).all()
-            if  avis is not None:
-                di = []
-                for a in avis:
-                    di.append(a.serialize())
-                us["avis"] = di
-            user = User.query.filter_by(id=u.id_etudiant).first()
-            if user is not None:
-                us["nom_etudiant"]={"nom":user.nom,"prenom":user.prenom}
+        formation = Formation.query.filter(Formation.id_formation == u.id_formation).first()
+        ecole = Ecole.query.filter(Ecole.id_ecole == formation.id_ecole).first()
+        fs = formation.serialize()
+        fs["ecole"] = ecole.serialize()
 
-        ap = actionPE.query.filter_by(id_candidature=u.id_candidature,id_etudiant=g.user.id, lu=0).count()
-        us['ap']=ap
-        us["ecole"] = {'id': f.id_ecole, "nom": e.nom_ecole}
-        data.append(us)
-        print("-----------------------")
-        print(us)
+        d["formation"] = fs
+        data.append(d)
     if not info:
         return jsonify({})
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:

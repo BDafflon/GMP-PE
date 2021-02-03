@@ -1144,7 +1144,8 @@ def get_candidatures():
         etu = User.query.filter(User.id==u.id_etudiant).first()
         d = u.serialize()
         d["etudiant"]=etu.serialize()
-
+        acpe = actionPE.query.filter(actionPE.id_candidature == u.id_candidature, actionPE.lu == False).all()
+        d["nbAction"] = len(acpe)
         formation = Formation.query.filter(Formation.id_formation==u.id_formation).first()
         ecole = Ecole.query.filter(Ecole.id_ecole==formation.id_ecole).first()
         fs = formation.serialize()
@@ -1232,6 +1233,8 @@ def get_candidatures_user(id):
     for u in info:
         etu = User.query.filter(User.id == u.id_etudiant).first()
         d = u.serialize()
+        acpe= actionPE.query.filter(actionPE.id_candidature==u.id_candidature,actionPE.lu==False).all()
+        d["nbAction"]= len(acpe)
         d["etudiant"] = etu.serialize()
 
         formation = Formation.query.filter(Formation.id_formation == u.id_formation).first()
@@ -1642,18 +1645,25 @@ def get_actionpes():
     return jsonify(data)
 
 
+@app.route('/api/actionpe/count_user/<int:id>', methods=['GET'])
+@auth.login_required
+def get_count_user_actionpe(id):
+    ap = actionPE.query.filter_by(id_etudiant=id,lu=0).count()
 
+    print(ap)
+    if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
+        abort(403)
+    return jsonify({'nb':ap})
 
 @app.route('/api/actionpe/count/<int:id>', methods=['GET'])
 @auth.login_required
 def get_count_actionpe(id):
     ap = actionPE.query.filter_by(id_candidature=id,lu=0).count()
 
-    if ap is None:
-        return jsonify({})
+    print(ap)
     if g.user.rank != Rank.ADMIN.value and g.user.rank != Rank.USER.value:
         abort(403)
-    return jsonify(ap)
+    return jsonify({'nb':ap})
 
 @app.route('/api/actionpe/<int:id>', methods=['GET'])
 @auth.login_required

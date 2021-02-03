@@ -223,9 +223,9 @@
                       >
                         <i class="fas fa-envelope fa-fw"></i>
                         <!-- Counter - Messages -->
-                        <span
+                        <span v-if="item.nbAction!=0"
                           class="badge badge-danger badge-counter"
-                          >{{item.ap}}</span
+                          >{{item.nbAction}}</span
                         >
                       </a>
 
@@ -257,7 +257,10 @@
                       >
                         <i class="fas fa-envelope fa-fw"></i>
                         <!-- Counter - Messages -->
-                         
+                         <span v-if="item.nbAction!=0"
+                          class="badge badge-danger badge-counter"
+                          >{{item.nbAction}}</span
+                        >
                       </a>
 
                       <a

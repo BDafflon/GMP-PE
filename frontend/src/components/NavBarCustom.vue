@@ -57,10 +57,10 @@
 
             <!-- Nav Item - Messages -->
             <li class="nav-item dropdown no-arrow mx-1">
-              <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/candidature" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-envelope fa-fw"></i>
                 <!-- Counter - Messages -->
-                <span class="badge badge-danger badge-counter">1</span>
+                <span v-if="nbMessage!=0" class="badge badge-danger badge-counter">{{nbMessage}}</span>
               </a>
               <!-- Dropdown - Messages -->
                
@@ -100,13 +100,19 @@
 
 <script>
   import { mapState, mapActions } from 'vuex';
+  import axios from 'axios';
 
   export default {
     data() {
       return {
         email: '',
-        password: ''
+        password: '',
+        nbMessage:0
       }
+    },
+    created () {
+        this.fetchData()
+  
     },
     computed: {
       ...mapState([
@@ -122,6 +128,27 @@
       ...mapActions([
          
       ])
+      ,
+      fetchData () {
+        axios({
+            method: 'get',
+            url: 'actionpe/count_user/'+this.user.id,
+            auth: {
+              username: this.user.mail,
+              password: this.user.pwd
+            }
+        })
+      .then(response => {
+
+         this.nbMessage=response.data.nb
+         console.debug("nb ",response.data)
+
+      })
+      .catch(error => {
+        console.debug(error)
+      })
+
+      }
     },
     filters: {
       capitalize: function (value) {

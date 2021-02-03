@@ -35,6 +35,7 @@
                     
 
                     <div v-if="user.rank==0" class="row align-items-center">
+                      
                       <div class="col-sm-2">
                         {{item.etudiant.nom | capitalize}}
                         {{item.etudiant.prenom | firstLetter}}.
@@ -44,15 +45,12 @@
                       </div>
                       <div class="col-sm-3">
                         <a
-                          v-if="item.ap != 0"
-                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                          
+                          class="d-none ml-2 text-white mt-2 d-sm-inline-block btn btn-sm btn-primary shadow-sm" id="messagesDropdown"
                         >
                           <i class="fas fa-envelope fa-fw"></i>
-                          <!-- Counter - Messages -->
-                          <span
-                            class="badge badge-danger badge-counter"
-                            >{{item.ap}}</span
-                          >
+                <!-- Counter - Messages -->
+                <span class="badge badge-danger badge-counter" v-if="item.nbAction != 0">{{item.nbAction}}</span>
                         </a>
 
                         <a

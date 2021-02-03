@@ -116,7 +116,7 @@
                       ></a>
                     </div>
                     <div class="col-sm-8">
-                      {{item.ecole.nom}} - {{item.formation.nom}}
+                      {{item.formation.ecole.nom_ecole}} - {{item.formation.specialite}}
                     </div>
                     <div class="col-sm-2">
                       <a
